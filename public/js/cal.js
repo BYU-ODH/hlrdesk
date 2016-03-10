@@ -4,7 +4,30 @@
  *The CSS could also use some revision
 */
 
-(function(){
+$(document).ready(function(){
+  $('.room').mouseover(function(){
+    var roomColumn = $(this);
+    var roomNum = roomColumn[0].textContent.substring(0, roomColumn[0].textContent.indexOf(" "));
+    var roomInfo = $('#'+roomNum);
+    roomInfo.removeClass('hidden')
+    roomInfo.css('left', (roomColumn[0].offsetParent.offsetLeft + roomColumn[0].offsetLeft)+'px');
+    roomInfo.css('top', (roomColumn[0].offsetParent.offsetTop + roomColumn[0].offsetHeight)+'px');
+    roomInfo.addClass('show');
+  })
+  $('.room').mouseleave(function(){
+    var roomColumn = $(this);
+    var roomNum = roomColumn[0].textContent.substring(0, roomColumn[0].textContent.indexOf(" "));
+    var roomInfo = $('#'+roomNum);
+    roomInfo.removeClass('show');git 
+    roomInfo.on('transitionend', function() {
+      if (!roomInfo.hasClass('show')) {
+        roomInfo.addClass('hidden');
+      }
+    })
+  });
+});
+
+/*(function(){
 
 var events = window.allEvents.rows;
 
@@ -529,4 +552,5 @@ function cancel() {
   deselectCells();
   updateGrid();
 }
-})();
+
+})();*/

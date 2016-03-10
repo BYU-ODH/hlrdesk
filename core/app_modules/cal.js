@@ -34,7 +34,7 @@ module.exports.addCalendarEvent = co.wrap(function*(username, event, user){
     }
     return yield events.rows;
   } else {
-    console.log("overlap");
+    console.error("overlap");
     return new Error("Overlap");
   }
 });

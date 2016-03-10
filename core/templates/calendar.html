@@ -1,11 +1,189 @@
 <script>
-  <% var roomsHLRC =  ["Recording Studio", "1141A", "1141B", "1141C", "1141D"] %>
-  <% var roomsHTRSC = ["B160", "B164", "B181", "B013", "B161", "1161", "B003", "1131A", "1133A", "1133B", "FLAC"] %>
-  window.rooms = {};
-  window.rooms.HLRC = ("<%- (roomsHLRC.toString()) %>").split(",");
-  window.rooms.HTRSC = ("<%- roomsHTRSC.toString() %>").split(",");
+  window.rooms = <%- JSON.stringify(rooms) %>;
+  <%// var roomsHLRC =  ["Recording Studio", "1141A", "1141B", "1141C", "1141D"] %>
+  <%// var roomsHTRSC = ["B160", "B164", "B181", "B013", "B161", "1161", "B003", "1131A", "1133A", "1133B", "FLAC"] %>
+  <% var studyRooms = []; %>
+  <% var specialtyRooms = []; %>
+  <% var otherRooms = []; %>
+  <% for (var i = 0; i < rooms.length; i++) { %>
+    <% if ('location' in rooms[i] && 'name' in rooms[i]) { %>
+      <% if (rooms[i]['location'].substring(0, 5).match(/11(31|33|41)[A-E]/)) { %>
+        <% studyRooms.push(rooms[i]); %>
+      <% } else if (rooms[i]['name'] == "Foreign Lang Activity Commons" || rooms[i]['name'] == "Recording Studio") { %>
+        <% specialtyRooms.push(rooms[i]); %>
+      <% } else { %>
+        <% otherRooms.push(rooms[i]); %>
+      <% } %>
+    <% } %>
+  <% } %>
+  <% studyRooms.sort(); %>
+  <% otherRooms.sort(); %>
+  
 </script>
+<body>
+  <section id='calendar'>
+    <select id='roomsSelector'>
+      <option>Study Rooms</option>
+      <option>Recording Studio</option>
+      <option>FLAC</option>
+      <option>Other Rooms</option>
+    </select>
+
+    <div id='studyRooms'>
+
+      <table id="studyRoomsGrid" class="calendar">
+        <% for (var i=7.5; i<=20.5; i=i+0.5) { %>
+          <% if (i < 8) { %>
+            <tr>
+              <th class="blank"></th>
+              <% for (var k=0; k<studyRooms.length; k++) { %>
+                <th class="room"><%= studyRooms[k].location %> (<%= studyRooms[k].capacity %>)</th>
+              <% } %>
+            </tr>
+          <% } else { %>
+            <tr>
+              <% for (var j=0; j<=studyRooms.length; j++) { %>
+                <% if (j==0) { %>
+                  <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
+                <% } else { %>
+                  <td id= "<%=studyRooms[j-1].location+" "+i%>" data-time="<%=i%>" data-room="<%= studyRooms[j-1].name %>"></td>
+                <% } %>
+              <% } %>
+            </tr>
+          <% } %>
+        <% } %>
+      </table>
+
+    <% for (var i=0; i<studyRooms.length; i++) { %>
+      <div id='<%= studyRooms[i].location.substring(0, studyRooms[i].location.indexOf(" ")) %>' class='roomInfo'>
+        <u><%= studyRooms[i].name %></u><br>
+        Capacity: <%= studyRooms[i].capacity %><br>
+        Location: <%= studyRooms[i].location %><br>
+        &nbsp&nbsp&nbsp&nbsp(<%= studyRooms[i].directions %>)<br>
+        Amenities: <%= studyRooms[i].amenities %>
+      </div>
+    <% } %>
+
+    </div>
+
+    <div id="recordingStudio" class='hidden'>
+
+      <table id="recStudioGrid" class="calendar">
+        <% for (var i=7.5; i<=20.5; i=i+0.5) { %>
+          <% if (i<8) { %>
+            <tr>
+              <th class="blank"></th>
+              <% var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; %>
+              <% for (var k=0; k<days.length; k++) { %>
+                <th class="day"><%= days[k] %></th>
+              <% } %>
+            </tr>
+          <% } else { %>
+            <tr>
+              <% for (var j=0; j<=days.length; j++) { %>
+                <% if (j==0) { %>
+                  <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
+                <% } else {%>
+                  <td></td>
+                <% } %>
+              <% } %>
+            </tr>
+          <% } %>
+        <% } %>
+      </table>
+
+    </div>
+
+    <div id='FLAC' class='hidden'>
+
+      <table id="FLACGrid" class="calendar">
+        <% for (var i=7.5; i<=20.5; i=i+0.5) { %>
+          <% if (i<8) { %>
+            <tr>
+              <th class="blank"></th>
+              <% var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; %>
+              <% for (var k=0; k<days.length; k++) { %>
+                <th class="room"><%= days[k] %></th>
+              <% } %>
+            </tr>
+          <% } else { %>
+            <tr>
+              <% for (var j=0; j<=days.length; j++) { %>
+                <% if (j==0) { %>
+                  <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
+                <% } else {%>
+                  <td></td>
+                <% } %>
+              <% } %>
+            </tr>
+          <% } %>
+        <% } %>
+      </table>
+
+    </div>
+
+    <div id='otherRooms' class='hidden'>
+
+      <table id="otherRoomsGrid" class="calendar">
+        <% for (var i=7.5; i<=20.5; i=i+0.5) { %>
+          <% if (i < 8) { %>
+            <tr>
+              <th class="blank"></th>
+              <% for (var k=0; k<otherRooms.length; k++) { %>
+                <th class="room"><%= otherRooms[k].location %></th>
+              <% } %>
+            </tr>
+          <% } else { %>
+            <tr>
+              <% for (var j=0; j<=otherRooms.length; j++) { %>
+                <% if (j==0) { %>
+                  <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
+                <% } else { %>
+                  <td></td>
+                <% } %>
+              <% } %>
+            </tr>
+          <% } %>
+        <% } %>
+      </table>
+
+    </div>
+
+  </section>
+
+</body>
 <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="/js/cal.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--
+<% /* %>
 <body>
   <section id="calendar">
     <button id="switchView" class = "mainBtn">Change View</button><select id="resourceSelect">
@@ -165,4 +343,5 @@
   window.userName = "<%- user %>";
 </script>
 <script src="/js/cal.js"></script>
-
+<% */ %>
+-->
