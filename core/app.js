@@ -326,6 +326,7 @@ app.use(_.get("/employees",function *(){
 socket.start(app);
 
 socket.use(function*(next){
+  console.log(this)
   this.socket.user = yield auth.getUser(this.data.token);
   yield next;
 });

@@ -3,27 +3,41 @@
  *Namely, it is possible to have overlapping reservations
  *The CSS could also use some revision
 */
+var socket = io();
 
 $(document).ready(function(){
-  $('.room').mouseover(function(){
-    var roomColumn = $(this);
-    var roomNum = roomColumn[0].textContent.substring(0, roomColumn[0].textContent.indexOf(" "));
-    var roomInfo = $('#'+roomNum);
-    roomInfo.removeClass('hidden')
-    roomInfo.css('left', (roomColumn[0].offsetParent.offsetLeft + roomColumn[0].offsetLeft)+'px');
-    roomInfo.css('top', (roomColumn[0].offsetParent.offsetTop + roomColumn[0].offsetHeight)+'px');
-    roomInfo.addClass('show');
+  $('#roomsSelector').on('change', function(){
+    var roomTemplateIds = {'Study Rooms':'studyRooms', 'Recording Studio':'recordingStudio', 'FLAC':'FLAC', 'Other Rooms':'otherRooms'}
+    changeTo(roomTemplateIds[this.value]);
   })
-  $('.room').mouseleave(function(){
-    var roomColumn = $(this);
-    var roomNum = roomColumn[0].textContent.substring(0, roomColumn[0].textContent.indexOf(" "));
-    var roomInfo = $('#'+roomNum);
-    roomInfo.removeClass('show');git 
-    roomInfo.on('transitionend', function() {
-      if (!roomInfo.hasClass('show')) {
-        roomInfo.addClass('hidden');
-      }
-    })
+  var changeTo = function(view) {
+    $('#visibleGrid')[0].innerHTML = $('#'+view).html();
+    switch (view) {
+      case 'otherRooms': // ||
+      case 'studyRooms':
+        $('.roomInfo').hide();
+        $('.room').mouseover(function(){
+          var roomNum = $(this).text().substring(0, $(this).text().indexOf(" "));
+          var roomInfoDiv = $('#'+roomNum);
+          roomInfoDiv.css('left', (($(this).offset().left + $(this).outerWidth()/2) - (roomInfoDiv.outerWidth()/2))+'px');
+          if ((($(this).offset().left + $(this).outerWidth()/2) + roomInfoDiv.outerWidth()/2) > window.innerWidth) {
+            roomInfoDiv.css('left', window.innerWidth - roomInfoDiv.outerWidth()+'px');
+          }
+          roomInfoDiv.css('top', ($(this).parent().offset().top + $(this).outerHeight())+'px');
+          roomInfoDiv.stop().slideDown();
+        })
+        $('.room').mouseleave(function(){
+          var roomNum = $(this).text().substring(0, $(this).text().indexOf(" "));
+          var roomInfoDiv = $('#'+roomNum);
+          roomInfoDiv.stop().slideUp();
+        });
+        break;
+    }
+  }
+  changeTo('studyRooms');
+  socket.emit('get events');
+  socket.on('get events', function(events) {
+    console.log(events);
   });
 });
 

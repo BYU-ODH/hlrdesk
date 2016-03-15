@@ -29,7 +29,11 @@
       <option>Other Rooms</option>
     </select>
 
-    <div id='studyRooms'>
+    <div id='visibleGrid'>
+      Loading...
+    </div>
+
+    <template id='studyRooms'>
 
       <table id="studyRoomsGrid" class="calendar">
         <% for (var i=7.5; i<=20.5; i=i+0.5) { %>
@@ -57,14 +61,21 @@
     <% for (var i=0; i<studyRooms.length; i++) { %>
       <div id='<%= studyRooms[i].location.substring(0, studyRooms[i].location.indexOf(" ")) %>' class='roomInfo'>
         <u><%= studyRooms[i].name %></u><br>
-        Capacity: <%= studyRooms[i].capacity %><br>
-        Location: <%= studyRooms[i].location %><br>
-        &nbsp&nbsp&nbsp&nbsp(<%= studyRooms[i].directions %>)<br>
-        Amenities: <%= studyRooms[i].amenities %>
+        <table>
+          <tr>
+            <td class='left'>Capacity:</td><td class='right'><%= studyRooms[i].capacity %></td>
+          </tr><tr>
+            <td class='left'>Location:</td><td class='right'><%= studyRooms[i].location %></td>
+          </tr><tr>
+            <td class='left'></td><td class='right'><%= studyRooms[i].directions %></td>
+          </tr><tr>
+            <td class='left'>Amenities:</td><td class='right'> <%= studyRooms[i].amenities %></td>
+          </tr>
+        </table>
       </div>
     <% } %>
 
-    </div>
+    </template>
 
     <div id="recordingStudio" class='hidden'>
 
@@ -103,7 +114,7 @@
               <th class="blank"></th>
               <% var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; %>
               <% for (var k=0; k<days.length; k++) { %>
-                <th class="room"><%= days[k] %></th>
+                <th class="day"><%= days[k] %></th>
               <% } %>
             </tr>
           <% } else { %>
@@ -146,6 +157,22 @@
           <% } %>
         <% } %>
       </table>
+      <% for (var i=0; i<otherRooms.length; i++) { %>
+      <div id='<%= otherRooms[i].location.substring(0, otherRooms[i].location.indexOf(" ")) %>' class='roomInfo'>
+        <u><%= otherRooms[i].name %></u><br>
+        <table>
+          <tr>
+            <td class='left'>Capacity:</td><td class='right'><%= otherRooms[i].capacity %></td>
+          </tr><tr>
+            <td class='left'>Location:</td><td class='right'><%= otherRooms[i].location %></td>
+          </tr><tr>
+            <td class='left'></td><td class='right'><%= otherRooms[i].directions %></td>
+          </tr><tr>
+            <td class='left'>Amenities:</td><td class='right'> <%= otherRooms[i].amenities %></td>
+          </tr>
+        </table>
+      </div>
+    <% } %>
 
     </div>
 

@@ -2,9 +2,20 @@ var db = require('./db')
 var co = require('co');
 var auth = require('./auth');
 var assert = require('assert');
+var request = require('request');
 module.exports = {};
 
-module.exports.addCalendarEvent = co.wrap(function*(username, event, user){
+module.exports.getAllEvents = co.wrap(function*(){
+  var rooms = request('http://scheduler.hlrdev.byu.edu/rooms?token=ABC123&format=json', function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      var importedJSON = JSON.parse(body);
+      return importedJSON;
+    }
+  });
+  return yield rooms;
+})
+
+/*module.exports.addCalendarEvent = co.wrap(function*(username, event, user){
   var client = db();
   var a = yield auth.isAdmin(username);
   if(!a) {
@@ -60,3 +71,4 @@ module.exports.deleteCalendarEvent = co.wrap(function*(username, event){
 
   return yield Promise.reject(new Error("Nice try."));
 });
+*/
