@@ -2,9 +2,9 @@ var cal = require('../app_modules/cal');
 
 module.exports = function(socket, app) {
   
-  socket.on('get events', function() {
-    cal.getAllEvents().then(function() {
-      app.io.emit('events');
+  socket.on('get events', function(eventsObj) {
+    cal.getEvents(eventsObj.rooms, eventsObj.date, eventsObj.token).then(function(events){
+      app.io.emit('get events', events);
     });
   });
   /*socket.on('calendar event', function(event) {

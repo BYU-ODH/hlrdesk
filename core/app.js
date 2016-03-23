@@ -5,7 +5,7 @@ var render = require('koa-ejs')
 var path = require('path')
 var fs = require('fs');
 var assert = require('assert');
-var request = require('request');
+var request = require('koa-request');
 
 var socket = require('koa-socket');
 
@@ -175,18 +175,14 @@ app.use(_.get("/calendar", function *(next) {
   //this.redirect('https://hlr.byu.edu/schedule/');
   //yield next;
 
-  var rooms = request('http://scheduler.hlrdev.byu.edu/rooms?token=ABC123&format=json', function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      var importedJSON = JSON.parse(body);
-      return importedJSON;
-    }
-  });
+  var token = 'ABC123';
+  var response = yield request('http://scheduler.hlrdev.byu.edu/rooms?token='+token+'&format=json');
+  var rooms = JSON.parse(response.body);
 
   var client = db();
   var isAdmin = yield auth.isAdmin(this.session.user);
   var allCalendarEvents = yield client.query('SELECT * FROM calendar;');
-  var rooms = require('./rooms.json');
-  //console.log(rooms)
+
   yield this.render('calendar', {layout: this.USE_LAYOUT, date: new Date(), allCalendarEvents: allCalendarEvents, user: this.session.user, isAdmin:isAdmin, rooms: rooms});
 }));
 
@@ -326,7 +322,6 @@ app.use(_.get("/employees",function *(){
 socket.start(app);
 
 socket.use(function*(next){
-  console.log(this)
   this.socket.user = yield auth.getUser(this.data.token);
   yield next;
 });

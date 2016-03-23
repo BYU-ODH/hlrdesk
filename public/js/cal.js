@@ -1,11 +1,9 @@
-﻿/*NOTES
- *While this calendar does function, it is not free of bugs
- *Namely, it is possible to have overlapping reservations
- *The CSS could also use some revision
-*/
-var socket = io();
+﻿var socket = io();
 
 $(document).ready(function(){
+
+  var currentEvents = [];
+
   $('#roomsSelector').on('change', function(){
     var roomTemplateIds = {'Study Rooms':'studyRooms', 'Recording Studio':'recordingStudio', 'FLAC':'FLAC', 'Other Rooms':'otherRooms'}
     changeTo(roomTemplateIds[this.value]);
@@ -13,7 +11,7 @@ $(document).ready(function(){
   var changeTo = function(view) {
     $('#visibleGrid')[0].innerHTML = $('#'+view).html();
     switch (view) {
-      case 'otherRooms': // ||
+      case 'otherRooms': // or
       case 'studyRooms':
         $('.roomInfo').hide();
         $('.room').mouseover(function(){
@@ -31,13 +29,69 @@ $(document).ready(function(){
           var roomInfoDiv = $('#'+roomNum);
           roomInfoDiv.stop().slideUp();
         });
+        getEventsFor(window.rooms[view]);
         break;
     }
   }
   changeTo('studyRooms');
-  socket.emit('get events');
+
+  function placeEvents(events) { //get this organized into day/week
+    for (var e = 0; e < events.length; e++) {
+      var event = events[e];
+      event.roomNumber = window.rooms[event.room].location.replace(' ','_');
+      var eventStart = Number(event.start_time.substring(0,2))+Number(event.start_time[4]==0?0:0.5)
+      var hourDiff = 0;
+
+      var cell = $('#'+event.roomNumber+'-'+String(eventStart+hourDiff).replace('.','\\.'));
+      cell.addClass('top')
+      cell.text(event.name)
+      while (eventStart + hourDiff < Number(event.end_time.substring(0,2))) {
+        cell = $('#'+event.roomNumber+'-'+String(eventStart+hourDiff).replace('.','\\.'));
+        cell.addClass('booked')
+        cell.data('event', event.id)
+        hourDiff=hourDiff+0.5;
+      }
+      cell.addClass('.bottom')
+
+    }
+    $('.booked').each(function() {
+
+      var sharedEventCells = [];
+      var room = $(this).data('room');
+      var event = $(this).data('event');
+      $('[data-room="'+room+'"]').each(function() {
+        if ($(this).data('event') == event) {
+          sharedEventCells.push($(this));
+        }
+      });
+
+      $(this).data('cells', sharedEventCells);
+      $(this).mouseover(function() {
+        highlightEvent($(this));
+      });
+      $(this).mouseleave(function() {
+        highlightEvent($(this));
+      });
+    });
+  }
+
+  function highlightEvent(cell) {
+    var sharedEventCells = cell.data('cells');
+    for (var i = 0; i < sharedEventCells.length; i++) {
+      sharedEventCells[i].toggleClass('hover')
+    }
+  }
+
+  function getEventsFor(rooms) {
+    socket.emit('get events', {'user':window.user, 'rooms':rooms, 'date':new Date().toISOString().substring(0, 10), 'token':'ABC123'});
+  }
   socket.on('get events', function(events) {
-    console.log(events);
+    for (var i = 0; i < events.length; i++) {
+      if ('name' in events[i] && events[i].start_time != "21:00:00") {
+        currentEvents.push(events[i]);
+      }
+    }
+    placeEvents(currentEvents)
   });
 });
 

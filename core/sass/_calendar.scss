@@ -7,9 +7,12 @@
 		td
 		{
 			border-collapse: collapse;
-			border: 1px solid #1c305d;
+			border: 1px solid $mainBlue;
 			padding: 2px;
+			text-align: center;
+			font-size: 0.85em;
 		}
+		border-bottom: 1px solid $mainBlue;
 	}
 
 	.blank, .time
@@ -21,24 +24,47 @@
 	{
 		padding:0.3em;
 		font-size: 14px;
-		background: #1c305d;
+		background: $mainBlue;
 	}
 
 	.blank:hover, .time:hover, .day:hover
 	{
-		background: #1c305d;
+		background: $mainBlue;
 	}
 
 	tr:hover .time:first-child
 	{
 		transition: background 0.15s;
-		background: #3e5d90;
+		background: $mainBlueHL;
 	}
 
-	td:hover, .room:hover
+	td:not(.booked):hover, .room:hover
 	{
 		transition: background 0.15s;
-		background: #3e5d90;
+		background: $mainBlueHL;
+	}
+
+	.booked
+	{
+		background: $disabledGrey;
+		color: $mainBlue;
+		border-top: 0px solid $mainBlue;
+		border-bottom: 0px solid $mainBlue;
+	}
+
+	.top
+	{
+		border-top: 1px solid $mainBlue;
+	}
+
+	.bottom
+	{
+		border-bottom: 1px solid $mainBlue;		
+	}
+
+	.hover
+	{
+		background: $mainBlueHL;
 	}
 
 	div .roomInfo

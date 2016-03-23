@@ -1,23 +1,28 @@
 <script>
-  window.rooms = <%- JSON.stringify(rooms) %>;
-  <%// var roomsHLRC =  ["Recording Studio", "1141A", "1141B", "1141C", "1141D"] %>
-  <%// var roomsHTRSC = ["B160", "B164", "B181", "B013", "B161", "1161", "B003", "1131A", "1133A", "1133B", "FLAC"] %>
+  window.rooms = {'studyRooms':{}, 'specialtyRooms':{}, 'otherRooms':{}};
   <% var studyRooms = []; %>
   <% var specialtyRooms = []; %>
   <% var otherRooms = []; %>
   <% for (var i = 0; i < rooms.length; i++) { %>
+    window.rooms['<%- rooms[i].id %>'] = <%- JSON.stringify(rooms[i]) %>;
     <% if ('location' in rooms[i] && 'name' in rooms[i]) { %>
       <% if (rooms[i]['location'].substring(0, 5).match(/11(31|33|41)[A-E]/)) { %>
         <% studyRooms.push(rooms[i]); %>
+        window.rooms.studyRooms['<%- rooms[i].id %>'] = <%- JSON.stringify(rooms[i]) %>;
       <% } else if (rooms[i]['name'] == "Foreign Lang Activity Commons" || rooms[i]['name'] == "Recording Studio") { %>
         <% specialtyRooms.push(rooms[i]); %>
+        window.rooms.specialtyRooms['<%- rooms[i].id %>'] = <%- JSON.stringify(rooms[i]) %>;
       <% } else { %>
         <% otherRooms.push(rooms[i]); %>
+        window.rooms.otherRooms['<%- rooms[i].id %>'] = <%- JSON.stringify(rooms[i]) %>;
       <% } %>
     <% } %>
   <% } %>
   <% studyRooms.sort(); %>
   <% otherRooms.sort(); %>
+
+  window.isAdmin = <%= isAdmin %>;
+  window.user = "<%- user %>";
   
 </script>
 <body>
@@ -50,7 +55,7 @@
                 <% if (j==0) { %>
                   <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
                 <% } else { %>
-                  <td id= "<%=studyRooms[j-1].location+" "+i%>" data-time="<%=i%>" data-room="<%= studyRooms[j-1].name %>"></td>
+                  <td id= "<%=studyRooms[j-1].location.replace(' ','_')+'-'+String(i)%>" data-time="<%=i%>" data-room="<%= studyRooms[j-1].name %>"></td>
                 <% } %>
               <% } %>
             </tr>
@@ -58,22 +63,25 @@
         <% } %>
       </table>
 
-    <% for (var i=0; i<studyRooms.length; i++) { %>
-      <div id='<%= studyRooms[i].location.substring(0, studyRooms[i].location.indexOf(" ")) %>' class='roomInfo'>
-        <u><%= studyRooms[i].name %></u><br>
-        <table>
-          <tr>
-            <td class='left'>Capacity:</td><td class='right'><%= studyRooms[i].capacity %></td>
-          </tr><tr>
-            <td class='left'>Location:</td><td class='right'><%= studyRooms[i].location %></td>
-          </tr><tr>
-            <td class='left'></td><td class='right'><%= studyRooms[i].directions %></td>
-          </tr><tr>
-            <td class='left'>Amenities:</td><td class='right'> <%= studyRooms[i].amenities %></td>
-          </tr>
-        </table>
-      </div>
-    <% } %>
+      <div id='eventContainer'></div>
+      <% for (var i=0; i<studyRooms.length; i++) { %>
+        <div id='<%= studyRooms[i].location.substring(0, studyRooms[i].location.indexOf(" ")) %>' class='roomInfo'>
+          <u><%= studyRooms[i].name %></u><br>
+          <table>
+            <tr>
+              <td class='left'>Capacity:</td><td class='right'><%= studyRooms[i].capacity %></td>
+            </tr><tr>
+              <td class='left'>Location:</td><td class='right'><%= studyRooms[i].location %></td>
+            </tr><tr>
+              <td class='left'></td><td class='right'><%= studyRooms[i].directions %></td>
+            </tr><tr>
+              <td class='left'>Amenities:</td><td class='right'> <%= studyRooms[i].amenities %></td>
+            </tr><tr>
+              <td class='left'>ID:</td><td class='right'> <%= studyRooms[i].id %></td>
+            </tr>
+          </table>
+        </div>
+      <% } %>
 
     </template>
 

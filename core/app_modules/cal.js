@@ -2,17 +2,21 @@ var db = require('./db')
 var co = require('co');
 var auth = require('./auth');
 var assert = require('assert');
-var request = require('request');
+var request = require('koa-request');
 module.exports = {};
 
-module.exports.getAllEvents = co.wrap(function*(){
-  var rooms = request('http://scheduler.hlrdev.byu.edu/rooms?token=ABC123&format=json', function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      var importedJSON = JSON.parse(body);
-      return importedJSON;
+module.exports.getEvents = co.wrap(function*(rooms, date, token){
+  var allEvents = [];
+  for (r in rooms) {
+    var room = rooms[r].id;
+    var response = yield request('http://scheduler.hlrdev.byu.edu/rooms/'+room+'/events?token='+token+'&date='+date+'&format=json');
+    var events = JSON.parse(response.body);
+    for (var i = 0; i < events.length; i++) {
+      events[i].room = room;
+      allEvents.push(events[i]);
     }
-  });
-  return yield rooms;
+  }
+  return allEvents;
 })
 
 /*module.exports.addCalendarEvent = co.wrap(function*(username, event, user){
