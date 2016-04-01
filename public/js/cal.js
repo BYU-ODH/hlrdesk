@@ -2,42 +2,221 @@
 
 $(document).ready(function(){
 
+////////////////////////////////////////FRONTEND//////////////////////////////////////
+
+  var displayedDate = new Date();
   var currentEvents = [];
+  var currentView;
+  var selectedCells = [];
+  var currentlySelecting = false;
 
   $('#roomsSelector').on('change', function(){
-    var roomTemplateIds = {'Study Rooms':'studyRooms', 'Recording Studio':'recordingStudio', 'FLAC':'FLAC', 'Other Rooms':'otherRooms'}
+    var roomTemplateIds = {'Study Rooms':'studyRooms', 'Recording Studio':'recordingStudio', 'FLAC':'flac', 'Other Rooms':'otherRooms'}
     changeTo(roomTemplateIds[this.value]);
   })
   var changeTo = function(view) {
     $('#visibleGrid')[0].innerHTML = $('#'+view).html();
-    switch (view) {
-      case 'otherRooms': // or
-      case 'studyRooms':
-        $('.roomInfo').hide();
-        $('.room').mouseover(function(){
-          var roomNum = $(this).text().substring(0, $(this).text().indexOf(" "));
-          var roomInfoDiv = $('#'+roomNum);
-          roomInfoDiv.css('left', (($(this).offset().left + $(this).outerWidth()/2) - (roomInfoDiv.outerWidth()/2))+'px');
-          if ((($(this).offset().left + $(this).outerWidth()/2) + roomInfoDiv.outerWidth()/2) > window.innerWidth) {
-            roomInfoDiv.css('left', window.innerWidth - roomInfoDiv.outerWidth()+'px');
-          }
-          roomInfoDiv.css('top', ($(this).parent().offset().top + $(this).outerHeight())+'px');
-          roomInfoDiv.stop().slideDown();
-        })
-        $('.room').mouseleave(function(){
-          var roomNum = $(this).text().substring(0, $(this).text().indexOf(" "));
-          var roomInfoDiv = $('#'+roomNum);
-          roomInfoDiv.stop().slideUp();
-        });
-        getEventsFor(window.rooms[view]);
-        break;
+    if (view == 'studyRooms' || view == 'otherRooms') {
+      currentView = 'multiple rooms';
+      $('.roomInfo').hide();
+      $('.room').mouseover(function(){
+        var roomNum = $(this).text().substring(0, $(this).text().indexOf(" "));
+        var roomInfoDiv = $('#'+roomNum);
+        roomInfoDiv.css('left', (($(this).offset().left + $(this).outerWidth()/2) - (roomInfoDiv.outerWidth()/2))+'px');
+        if ((($(this).offset().left + $(this).outerWidth()/2) + roomInfoDiv.outerWidth()/2) > window.innerWidth) {
+          roomInfoDiv.css('left', window.innerWidth - roomInfoDiv.outerWidth()+'px');
+        }
+        roomInfoDiv.css('top', ($(this).parent().offset().top + $(this).outerHeight())+'px');
+        roomInfoDiv.stop().slideDown();
+      })
+      $('.room').mouseleave(function(){
+        var roomNum = $(this).text().substring(0, $(this).text().indexOf(" "));
+        var roomInfoDiv = $('#'+roomNum);
+        roomInfoDiv.stop().slideUp();
+      });
+      getEventsFor(window.rooms[view], displayedDate);
+    } else if (view == 'recordingStudio' || view == 'flac') {
+      currentView = 'single room';
+      if (view == 'recordingStudio') {
+        getEventsFor(window.rooms[13], displayedDate)
+      } else if (view == 'flac') {
+        getEventsFor(window.rooms[15], displayedDate)
+      }
     }
+    $('td').mousedown(function() {
+      $(this).addClass('hover');
+      $(this).parent().children('th').addClass('hover');
+      selectedCells.push($(this));
+      currentlySelecting = true;
+    });
+    $('td').mouseover(function(e) {
+      //if (e.buttons === 1) {
+      if (currentlySelecting && !$(this).hasClass('booked')) {
+        var fromCell = $('#'+(e.relatedTarget.id.replace('.','\\.')));
+        var thisElementColumn = $(this).attr('id').substring(0, $(this).attr('id').indexOf('-'));
+        var fromElementColumn = fromCell.attr('id').substring(0, fromCell.attr('id').indexOf('-'));
+        var thisElementTime = Number($(this).data('time'));
+        var fromElementTime = Number(fromCell.data('time'));
+        if (thisElementColumn == fromElementColumn) { //same column
+          if (fromElementTime == thisElementTime - 0.5 && fromCell.hasClass('hover')) { //selected cells are in sequence
+            selectedCells.push($(this))
+            $(this).addClass('hover')
+            $(this).parent().children('th').addClass('hover')
+          } else if (thisElementTime > fromElementTime + 0.5) {
+            clearSelection();
+            selectedCells.length = 0;
+          } else {
+            selectedCells.splice(selectedCells.length-1, 1);
+            fromCell.removeClass('hover');
+            fromCell.parent().children('th').removeClass('hover');
+          }
+        } else {
+          currentlySelecting = false;
+          clearSelection();
+        }
+      } else {
+        clearSelection();
+      }
+    });
+    $(document).mouseup(function() {
+      if (currentlySelecting) {
+        currentlySelecting = false;
+        if (selectedCells.length > 0) {
+          displayCreator(selectedCells.itemAt(0))
+          selectedCells.length = 0;
+        }
+      }
+    });
   }
   changeTo('studyRooms');
 
+  function displayCreator(cell) {
+    var prompt = $('#eventCreator');
+    prompt.css('left', '33%');
+    prompt.css('top', '33%');
+    prompt.show();
+    creatorText(cell);
+    $('#visibleGrid').addClass('blurred')
+
+    $('#eventCreator header').mousedown(function(e){
+      handle_mousedown(e, $(this).parent())
+    });
+
+    $('#roomsSelector').prop('disabled', true);
+    var blanket = document.createElement("div");
+    blanket.id = 'blanket'
+    blanket.classList.add('blanket')
+    $('#visibleGrid').append(blanket);
+
+    $('#creatorClose').click(function() {
+      selectedCells.length = 0;
+      clearSelection();
+    });
+
+    function creatorText(startCell) {
+      $('#creatorDate').text(displayedDate.toDateString())
+
+      function getBlock(firstCell, duration) {
+        if (!duration) {duration = 22}
+        var cellsInColumn = firstCell.data('room') ? $('[data-room="'+firstCell.data('room')+'"]') : $('[data-day="'+firstCell.data('day')+'"]');
+        var newSelection = [];
+        for (var i = 0; i < cellsInColumn.length; i++) {
+          if (Number(cellsInColumn[i].dataset.time) >= firstCell.data('time')) {
+            if (!cellsInColumn[i].classList.contains('booked') && Number(cellsInColumn[i].dataset.time) - Number(firstCell.data('time')) < duration) {
+              newSelection.push($('#'+cellsInColumn[i].id.replace('.','\\.')));
+            } else {
+              break;
+            }
+          }
+        }
+        return newSelection;
+      }
+      $('#creatorDurationSelect').empty();
+      for (var i = 0, value = 0.5; i < getBlock(startCell).length; i++, value = value+0.5) {
+        $('#creatorDurationSelect').append($('<option>', {'value': value, 'text': value}));
+      }
+      $('#creatorDurationSelect').val(selectedCells.length/2);
+      $('#creatorDurationSelect').change(function() {
+        $('td').removeClass('hover');
+        $('th').removeClass('hover');
+        selectedCells = getBlock(startCell, $(this).val());
+        for (c in selectedCells) {
+          if (selectedCells.hasOwnProperty(c)) {
+            var cell = selectedCells[c];
+            cell.addClass('hover');
+            cell.parent().children('th').addClass('hover')
+         }
+        }
+        var nextCell = $('#'+selectedCells.itemAt(-1).attr('id').substring(0, selectedCells.itemAt(-1).attr('id').indexOf('-')+1)+String(Number(selectedCells.itemAt(-1).data('time'))+0.5).replace('.','\\.'));
+        $('#creatorTime').text(selectedCells.itemAt(0).data('timereadable')+' to '+nextCell.data('timereadable'));
+      });
+      
+      var endTime = Number(selectedCells.itemAt(-1).data('time')+0.5);
+      var endTimeReadable = (Math.floor(endTime<=13?endTime:halfHourLater-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM')
+      console.log(endTimeReadable)
+      $('#creatorTime').text(selectedCells.itemAt(0).data('timereadable')+' to '+endTimeReadable);
+    
+      $('#creatorRoom').text(selectedCells.itemAt(0).data('room'));
+    }
+
+  }
+
+  function clearSelection() {
+    $('td').removeClass('hover');
+    $('th').removeClass('hover');
+    $('#eventCreator').hide();
+    $('#visibleGrid').removeClass('blurred');
+    $('#blanket').remove();
+    $('#roomsSelector').prop('disabled', false);
+  }
+
+  function handle_mousedown(e, element){
+    window.my_dragging = {};
+    my_dragging.pageX0 = e.pageX;
+    my_dragging.pageY0 = e.pageY;
+    my_dragging.elem = element;
+    my_dragging.offset0 = element.offset();
+    function handle_dragging(e){
+        var left = my_dragging.offset0.left + (e.pageX - my_dragging.pageX0);
+        var top = my_dragging.offset0.top + (e.pageY - my_dragging.pageY0);
+        my_dragging.elem
+        .offset({top: top, left: left});
+    }
+    function handle_mouseup(e){
+        $('body')
+        .off('mousemove', handle_dragging)
+        .off('mouseup', handle_mouseup);
+    }
+    $('body')
+    .on('mouseup', handle_mouseup)
+    .on('mousemove', handle_dragging);
+  }
+
+  function highlightEvent(cell) {
+    if (!currentlySelecting) {
+      var sharedEventCells = cell.data('cells');
+      for (var i = 0; i < sharedEventCells.length; i++) {
+        sharedEventCells[i].toggleClass('hover')
+      }
+    } else {
+      selectedCells.length = 0;
+      clearSelection();
+    }
+  }
+
+/////////////////////////////////////////////////BACKEND/////////////////////////////////////////
+
   function placeEvents(events) { //get this organized into day/week
+    /*if (currentView == 'multiple rooms') {
+      var column = event.roomNumber;
+    } else {
+      //var column = event['days_of_week'];
+      console.log(event.date)
+    }*/
     for (var e = 0; e < events.length; e++) {
       var event = events[e];
+      var days = {'Monday':1, 'Tuesday':2, 'Wednesday':3, 'Thursday':4, 'Friday':5, 'Saturday':6};
+      console.log(event['days_of_week'].split(','));
       event.roomNumber = window.rooms[event.room].location.replace(' ','_');
       var eventStart = Number(event.start_time.substring(0,2))+Number(event.start_time[4]==0?0:0.5)
       var hourDiff = 0;
@@ -75,15 +254,54 @@ $(document).ready(function(){
     });
   }
 
-  function highlightEvent(cell) {
-    var sharedEventCells = cell.data('cells');
-    for (var i = 0; i < sharedEventCells.length; i++) {
-      sharedEventCells[i].toggleClass('hover')
-    }
-  }
+  /*function placeEvents(events) {
+    if (currentView == 'multiple rooms') {
+      for (var e = 0; e < events.length; e++) {
+        var event = events[e];
+        event.roomNumber = window.rooms[event.room].location.replace(' ','_');
+        var eventStart = Number(event.start_time.substring(0,2))+Number(event.start_time[4]==0?0:0.5)
+        var hourDiff = 0;
 
-  function getEventsFor(rooms) {
-    socket.emit('get events', {'user':window.user, 'rooms':rooms, 'date':new Date().toISOString().substring(0, 10), 'token':'ABC123'});
+        var cell = $('#'+event.roomNumber+'-'+String(eventStart+hourDiff).replace('.','\\.'));
+        cell.addClass('top')
+        cell.text(event.name)
+        while (eventStart + hourDiff < Number(event.end_time.substring(0,2))) {
+          cell = $('#'+event.roomNumber+'-'+String(eventStart+hourDiff).replace('.','\\.'));
+          cell.addClass('booked')
+          cell.data('event', event.id)
+          hourDiff=hourDiff+0.5;
+        }
+        cell.addClass('.bottom')
+
+      }
+    } else if (currentView == 'single room') {
+      for (var e = 0; e < events.length; e++) {
+        var event = events[e];
+
+      }
+    }
+    $('.booked').each(function() {
+      var sharedEventCells = [];
+      var room = $(this).data('room');
+      var event = $(this).data('event');
+      $('[data-room="'+room+'"]').each(function() {
+        if ($(this).data('event') == event) {
+          sharedEventCells.push($(this));
+        }
+      });
+
+      $(this).data('cells', sharedEventCells);
+      $(this).mouseover(function() {
+        highlightEvent($(this));
+      });
+      $(this).mouseleave(function() {
+        highlightEvent($(this));
+      });
+    });
+  }*/
+
+  function getEventsFor(rooms, date) {
+    socket.emit('get events', {'user':window.user, 'rooms':rooms, 'date':date.toISOString().substring(0, 10), 'token':'ABC123'});
   }
   socket.on('get events', function(events) {
     for (var i = 0; i < events.length; i++) {
@@ -94,6 +312,31 @@ $(document).ready(function(){
     placeEvents(currentEvents)
   });
 });
+
+//////////////////////////////////////PROTOTYPE MODIFICATIONS/////////////////////////////
+if (!Array.prototype.last) {
+  Array.prototype.last = function() {
+    if (this[this.length-1]) {
+      return this[this.length-1];
+    } else {
+      return this[0];
+    }
+  }
+}
+
+if (!Array.prototype.itemAt) {
+  Array.prototype.itemAt = function(index) {
+    if (index < 0) {
+      if (this[this.length+index]) {
+        return this[this.length+index];        
+      } else {
+        return this[this.length-1]
+      }
+    } else {
+      return this[index];
+    }
+  }
+}
 
 /*(function(){
 

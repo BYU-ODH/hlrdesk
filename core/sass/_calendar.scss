@@ -1,11 +1,14 @@
 #calendar {
 
+	-webkit-user-select: none;
+
 	table
 	{
 		table-layout: fixed;
 		width: 97%;
 		td
 		{
+			-webket-user-select: none;
 			border-collapse: collapse;
 			border: 1px solid $mainBlue;
 			padding: 2px;
@@ -67,14 +70,19 @@
 		background: $mainBlueHL;
 	}
 
+	.selected
+	{
+		background: $mainBlueHL;
+	}
+
 	div .roomInfo
 	{
 		padding: 0.5em;
 	    background-color: rgba(250, 250, 250, .8);
 	    width: 22%;
 	    border: 0;
-	    border-radius: .5em;
-	    box-shadow: .5em .5em 15px rgba(100, 100, 100, .8);
+	    border-radius: .4em;
+	    box-shadow: .4em .4em 15px rgba(100, 100, 100, .8);
 	    position: absolute;
 	    visibility: visible;
 	    color: #555;
@@ -102,6 +110,49 @@
 				text-align: left;
 			}
 	    }
+	}
+
+	#eventCreator
+	{
+		-webkit-user-select: none;
+		padding: 0.5em;
+	    background-color: rgba(250, 250, 250, .8);
+	    width: 22%;
+	    border: 0;
+	    border-radius: 0.4em;
+	    box-shadow: .4em .4em 15px rgba(100, 100, 100, .8);
+	    position: absolute;
+	    visibility: visible;
+	    color: #555;
+	    padding: 2em 0.5em 0.5em 0.5em;
+
+	    header
+	    {
+	    	cursor: move;
+		    color: #fff;
+		    top: 0em;
+		    background-color: $mainBlue;
+		    padding: .5em;
+		    text-align: center;
+		    border: 0; 
+		    border-radius: .4em .4em 0 0;
+		    position:inherit;
+		    width: calc(100% - 1em);
+		    margin: -.5em -.5em;
+	    }
+	}
+
+	.blurred
+	{
+		-webkit-filter: blur(2px);
+	}
+
+	.blanket
+	{
+		height: 100%;
+	    width: 100%;
+	    position: fixed;
+	    top:0;
 	}
 
 }

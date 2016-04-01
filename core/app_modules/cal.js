@@ -5,17 +5,31 @@ var assert = require('assert');
 var request = require('koa-request');
 module.exports = {};
 
+var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
 module.exports.getEvents = co.wrap(function*(rooms, date, token){
   var allEvents = [];
   for (r in rooms) {
     var room = rooms[r].id;
     var response = yield request('http://scheduler.hlrdev.byu.edu/rooms/'+room+'/events?token='+token+'&date='+date+'&format=json');
+    date = new Date(date)
+    date.setHours(24);
     var events = JSON.parse(response.body);
+    console.log(events)
     for (var i = 0; i < events.length; i++) {
-      events[i].room = room;
-      allEvents.push(events[i]);
+      if ('name' in events[i]) {
+        var eventDays = events[i].days_of_week.split(',');
+        for (var j = 0; j < eventDays.length; j++) {
+          if (eventDays[j] == days[date.getDay()-1]) {
+            events[i].room = room;
+            events[i].date = date.toISOString().substring(0, 10);
+            allEvents.push(events[i]);
+          }
+        }
+      }
     }
   }
+  console.log(allEvents)
   return allEvents;
 })
 
