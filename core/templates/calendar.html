@@ -27,12 +27,15 @@
 </script>
 <body>
   <section id='calendar'>
-    <select id='roomsSelector'>
-      <option>Study Rooms</option>
-      <option>Recording Studio</option>
-      <option>FLAC</option>
-      <option>Other Rooms</option>
-    </select>
+    <div id='headerBar'>
+      <select id='roomsSelector'>
+        <option>Study Rooms</option>
+        <option>Recording Studio</option>
+        <option>FLAC</option>
+        <option>Other Rooms</option>
+      </select>
+      Go to <input type='date' id='dateSelector' value='<%=new Date().toISOString().substring(0, 10)%>' min='<%=new Date().toISOString().substring(0, 10)%>'></input>
+    </div>
 
     <div id='visibleGrid'>
       Loading...
@@ -184,11 +187,15 @@
     </template>
 
     <div id='eventCreator' style="display:none">
-      <header>Create an event for...</header>
+      <header>Create an event on...</header>
       <p id='creatorDate'></p>
       <p>For <select id='creatorDurationSelect'></select> hours</p>
-      From <p id='creatorTime'></p>
-      In <p id='creatorRoom'></p>
+      <p id='creatorTime'></p>
+      <p id='creatorRoom'></p><br>
+      <p>Event name: <input type='text' id='eventName'></input></p><br>
+      <p>Client's netid: <input type='text' id='clientNetid'></input></p>
+      <p class='halfSize'><input type='checkbox' id='clientIsOverseer'>Reservation is being made on behalf of someone else</input></p>
+      <p id='overseerNetid' style="display:none">Overseer's netid: <input type='text' id='overseerNetidBox'></input></p>
       <button id='creatorSave' class='greenBtn'>Confirm</button><button id='creatorClose' class='redBtn'>Cancel</button>
     </div>
 

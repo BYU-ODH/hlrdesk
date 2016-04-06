@@ -4,17 +4,35 @@ $(document).ready(function(){
 
 ////////////////////////////////////////FRONTEND//////////////////////////////////////
 
-  var displayedDate = new Date();
+  var displayedDate = new Date().toISOString().substring(0, 10);
   var currentEvents = [];
-  var currentView;
+  var currentView = 'multiple rooms';
   var selectedCells = [];
   var currentlySelecting = false;
 
   $('#roomsSelector').on('change', function(){
     var roomTemplateIds = {'Study Rooms':'studyRooms', 'Recording Studio':'recordingStudio', 'FLAC':'flac', 'Other Rooms':'otherRooms'}
-    changeTo(roomTemplateIds[this.value]);
-  })
-  var changeTo = function(view) {
+    changeGridTo(roomTemplateIds[this.value], displayedDate);
+  });
+  $('#dateSelector').on('change', function() {
+    var selectedDate = new Date($(this).val()).setHours(24);
+    if (selectedDate.getDay() === 0) { //YOU WERE HERE
+      alert('that is a sunday')
+      selectedDate = new Date(selectedDate + 86400000);
+      $(this).val(selectedDate.substring(0,10)
+    }
+    if (currentView == 'multiple rooms') {
+      displayedDate = $(this).val();
+    } else {
+      var dayDifference = (new Date(selectedDate).getDay()-1)*86400000;
+      displayedDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10);
+    }
+    //changeGridTo(currentView, displayedDate)
+    $('#roomsSelector').trigger('change', [currentView, displayedDate])
+    console.log(displayedDate)
+  });
+
+  function changeGridTo(view, date) {
     $('#visibleGrid')[0].innerHTML = $('#'+view).html();
     if (view == 'studyRooms' || view == 'otherRooms') {
       currentView = 'multiple rooms';
@@ -34,20 +52,30 @@ $(document).ready(function(){
         var roomInfoDiv = $('#'+roomNum);
         roomInfoDiv.stop().slideUp();
       });
-      getEventsFor(window.rooms[view], displayedDate);
+      getEventsFor(window.rooms[view], date);
     } else if (view == 'recordingStudio' || view == 'flac') {
       currentView = 'single room';
+
+      var selectedDate = new Date($('#dateSelector').val()).setHours(24);
+      var dayDifference = (new Date(selectedDate).getDay()-1)*86400000;
+      displayedDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10);
+
       if (view == 'recordingStudio') {
-        getEventsFor(window.rooms[13], displayedDate)
+        getEventsFor(window.rooms[13], date)
       } else if (view == 'flac') {
-        getEventsFor(window.rooms[15], displayedDate)
+        getEventsFor(window.rooms[15], date)
       }
     }
     $('td').mousedown(function() {
-      $(this).addClass('hover');
-      $(this).parent().children('th').addClass('hover');
-      selectedCells.push($(this));
-      currentlySelecting = true;
+      if (!$(this).hasClass('booked')) {
+        $(this).addClass('hover');
+        $(this).parent().children('th').addClass('hover');
+        selectedCells.push($(this));
+        currentlySelecting = true;
+      } else {
+        alert('One day, this will make it possible to edit the event you just clicked')
+        //TODO: edit event
+      }
     });
     $('td').mouseover(function(e) {
       //if (e.buttons === 1) {
@@ -88,7 +116,7 @@ $(document).ready(function(){
       }
     });
   }
-  changeTo('studyRooms');
+  changeGridTo('studyRooms');
 
   function displayCreator(cell) {
     var prompt = $('#eventCreator');
@@ -99,7 +127,7 @@ $(document).ready(function(){
     $('#visibleGrid').addClass('blurred')
 
     $('#eventCreator header').mousedown(function(e){
-      handle_mousedown(e, $(this).parent())
+      drag(e, $(this).parent())
     });
 
     $('#roomsSelector').prop('disabled', true);
@@ -108,15 +136,26 @@ $(document).ready(function(){
     blanket.classList.add('blanket')
     $('#visibleGrid').append(blanket);
 
+    $('#creatorSave').click(function() {
+      alert("This doesn't do anything yet!")
+    });
+
     $('#creatorClose').click(function() {
       selectedCells.length = 0;
       clearSelection();
     });
 
     function creatorText(startCell) {
-      $('#creatorDate').text(displayedDate.toDateString())
+      if (startCell.data('day')) {
+        var dayValOf = {'monday':0, 'tuesday':1, 'wednesday':2, 'thursday':3, 'friday':4, 'saturday':5}
+        //console.log(new Date(new Date(displayedDate)+(86400000*dayValOf[selectedCells[0].data('day')])).toDateString())
+        $('#creatorDate').text(new Date(new Date(displayedDate).setHours(24)+(86400000*dayValOf[selectedCells[0].data('day')])).toDateString());
+      } else {
+        var dateOfEvent = new Date(new Date(displayedDate).setHours(24));
+        $('#creatorDate').text(dateOfEvent.toDateString());
+      }
 
-      function getBlock(firstCell, duration) {
+      function getAvailableBlock(firstCell, duration) {
         if (!duration) {duration = 22}
         var cellsInColumn = firstCell.data('room') ? $('[data-room="'+firstCell.data('room')+'"]') : $('[data-day="'+firstCell.data('day')+'"]');
         var newSelection = [];
@@ -132,14 +171,14 @@ $(document).ready(function(){
         return newSelection;
       }
       $('#creatorDurationSelect').empty();
-      for (var i = 0, value = 0.5; i < getBlock(startCell).length; i++, value = value+0.5) {
+      for (var i = 0, value = 0.5; i < getAvailableBlock(startCell).length; i++, value = value+0.5) {
         $('#creatorDurationSelect').append($('<option>', {'value': value, 'text': value}));
       }
       $('#creatorDurationSelect').val(selectedCells.length/2);
       $('#creatorDurationSelect').change(function() {
         $('td').removeClass('hover');
         $('th').removeClass('hover');
-        selectedCells = getBlock(startCell, $(this).val());
+        selectedCells = getAvailableBlock(startCell, $(this).val());
         for (c in selectedCells) {
           if (selectedCells.hasOwnProperty(c)) {
             var cell = selectedCells[c];
@@ -147,16 +186,29 @@ $(document).ready(function(){
             cell.parent().children('th').addClass('hover')
          }
         }
-        var nextCell = $('#'+selectedCells.itemAt(-1).attr('id').substring(0, selectedCells.itemAt(-1).attr('id').indexOf('-')+1)+String(Number(selectedCells.itemAt(-1).data('time'))+0.5).replace('.','\\.'));
-        $('#creatorTime').text(selectedCells.itemAt(0).data('timereadable')+' to '+nextCell.data('timereadable'));
+        var endTime = Number(selectedCells.itemAt(-1).data('time')+0.5);
+        var endTimeReadable = (Math.floor(endTime<=13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
+        $('#creatorTime').text('From '+selectedCells.itemAt(0).data('timereadable')+' to '+endTimeReadable);
       });
       
       var endTime = Number(selectedCells.itemAt(-1).data('time')+0.5);
-      var endTimeReadable = (Math.floor(endTime<=13?endTime:halfHourLater-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM')
-      console.log(endTimeReadable)
-      $('#creatorTime').text(selectedCells.itemAt(0).data('timereadable')+' to '+endTimeReadable);
+      var endTimeReadable = (Math.floor(endTime<=13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
+      $('#creatorTime').text('From '+selectedCells.itemAt(0).data('timereadable')+' to '+endTimeReadable);
     
-      $('#creatorRoom').text(selectedCells.itemAt(0).data('room'));
+      if (selectedCells[0].data('room')) {
+        $('#creatorRoom').text('In '+selectedCells.itemAt(0).data('room'));
+      } else {
+        //TODO: cell room
+      }
+
+      $('#overseerNetid').hide();
+      $('#clientIsOverseer').click(function() {
+        if ($(this).prop('checked')) {
+          $('#overseerNetid').show();
+        } else {
+          $('#overseerNetid').hide();
+        }
+      })
     }
 
   }
@@ -170,7 +222,7 @@ $(document).ready(function(){
     $('#roomsSelector').prop('disabled', false);
   }
 
-  function handle_mousedown(e, element){
+  function drag(e, element){
     window.my_dragging = {};
     my_dragging.pageX0 = e.pageX;
     my_dragging.pageY0 = e.pageY;
@@ -204,6 +256,11 @@ $(document).ready(function(){
     }
   }
 
+  function clearGrid() {
+    $('.calendar td').removeClass();
+    $('.calendar td').text('');
+  }
+
 /////////////////////////////////////////////////BACKEND/////////////////////////////////////////
 
   function placeEvents(events) { //get this organized into day/week
@@ -213,6 +270,7 @@ $(document).ready(function(){
       //var column = event['days_of_week'];
       console.log(event.date)
     }*/
+    clearGrid();
     for (var e = 0; e < events.length; e++) {
       var event = events[e];
       var days = {'Monday':1, 'Tuesday':2, 'Wednesday':3, 'Thursday':4, 'Friday':5, 'Saturday':6};
@@ -301,7 +359,7 @@ $(document).ready(function(){
   }*/
 
   function getEventsFor(rooms, date) {
-    socket.emit('get events', {'user':window.user, 'rooms':rooms, 'date':date.toISOString().substring(0, 10), 'token':'ABC123'});
+    socket.emit('get events', {'user':window.user, 'rooms':rooms, 'date':date, 'token':'ABC123'});
   }
   socket.on('get events', function(events) {
     for (var i = 0; i < events.length; i++) {
