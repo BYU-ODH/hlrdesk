@@ -27,7 +27,7 @@
 </script>
 <body>
   <section id='calendar'>
-    <div id='headerBar'>
+    <div id='headerBar' class='blurred'>
       <select id='roomsSelector'>
         <option>Study Rooms</option>
         <option>Recording Studio</option>
@@ -37,9 +37,9 @@
       Go to <input type='date' id='dateSelector' value='<%=new Date().toISOString().substring(0, 10)%>' min='<%=new Date().toISOString().substring(0, 10)%>'></input>
     </div>
 
-    <div id='visibleGrid'>
-      Loading...
-    </div>
+    <div id='visibleGrid' class='blurred'></div>
+
+    <div id='blanket'>Loading...</div>
 
     <template id='studyRooms'>
 
@@ -58,7 +58,7 @@
                 <% if (j==0) { %>
                   <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
                 <% } else { %>
-                  <td id= "<%=studyRooms[j-1].location.replace(' ','_')+'-'+String(i)%>" data-time="<%=i%>" data-room="<%= studyRooms[j-1].name %>" data-timeReadable="<%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %>"</td>
+                  <td id= "<%=studyRooms[j-1].location.replace(' ','_')+'-'+String(i)%>" data-time="<%=i%>" data-room="<%= studyRooms[j-1].name %>" data-timereadable="<%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %>"</td>
                 <% } %>
               <% } %>
             </tr>
@@ -92,11 +92,11 @@
       <table id="recStudioGrid" class="calendar">
         <% for (var i=7.5; i<=20.5; i=i+0.5) { %>
           <% if (i<8) { %>
-            <tr>
+            <tr id='daysHeader'>
               <th class="blank"></th>
               <% var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; %>
               <% for (var k=0; k<days.length; k++) { %>
-                <th class="day"><%= days[k] %></th>
+                <th id="<%= days[k].toLowerCase() %>Column" class="day"><%= days[k] %></th>
               <% } %>
             </tr>
           <% } else { %>
@@ -105,7 +105,7 @@
                 <% if (j==0) { %>
                   <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
                 <% } else {%>
-                  <td id= "<%= String(days[j-1]).toLowerCase()+'-'+String(i)%>" data-time="<%=i%>" data-day="<%=String(days[j-1]).toLowerCase()%>"></td>
+                  <td id= "<%= String(days[j-1]).toLowerCase()+'-'+String(i)%>" data-time="<%=i%>" data-day="<%=String(days[j-1]).toLowerCase()%>" data-timereadable="<%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %>"></td>
                 <% } %>
               <% } %>
             </tr>
@@ -120,7 +120,7 @@
       <table id="FLACGrid" class="calendar">
         <% for (var i=7.5; i<=20.5; i=i+0.5) { %>
           <% if (i<8) { %>
-            <tr>
+            <tr id='daysHeader'>
               <th class="blank"></th>
               <% var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; %>
               <% for (var k=0; k<days.length; k++) { %>
@@ -133,7 +133,7 @@
                 <% if (j==0) { %>
                   <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
                 <% } else {%>
-                  <td id= "<%= String(days[j-1]).toLowerCase()+'-'+String(i)%>" data-time="<%=i%>" data-day="<%=String(days[j-1]).toLowerCase()%>"></td>
+                  <td id= "<%= String(days[j-1]).toLowerCase()+'-'+String(i)%>" data-time="<%=i%>" data-day="<%=String(days[j-1]).toLowerCase()%>"data-timereadable="<%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %>"></td>
                 <% } %>
               <% } %>
             </tr>
@@ -160,7 +160,7 @@
                 <% if (j==0) { %>
                   <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
                 <% } else { %>
-                  <td id= "<%=otherRooms[j-1].location.replace(' ','_')+'-'+String(i)%>" data-time="<%=i%>" data-room="<%= otherRooms[j-1].name %>" data-timeReadable="<%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %>"</td>
+                  <td id= "<%=otherRooms[j-1].location.replace(' ','_')+'-'+String(i)%>" data-time="<%=i%>" data-room="<%= otherRooms[j-1].name %>" data-timereadable="<%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %>"</td>
                 <% } %>
               <% } %>
             </tr>

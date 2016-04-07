@@ -131,6 +131,7 @@
 	    visibility: visible;
 	    color: #555;
 	    padding: 2em 0.5em 0.5em 0.5em;
+	    z-index: 2;
 
 	    header
 	    {
@@ -156,15 +157,23 @@
 
 	.blurred
 	{
-		-webkit-filter: blur(1.25px);
+		//-webkit-filter: blur(1.25px);
+		-webkit-filter: blur(2px);
 	}
 
-	.blanket
+	#blanket
 	{
+		cursor: default;
 		height: 100%;
-	    width: 100%;
-	    position: fixed;
-	    top:0;
+		width: 100%;
+		position: absolute;
+		top:0px;
+		z-index: 1;
+		font-size: 4em;
+
+		display: flex;
+		align-items: center;
+		justify-content: center;	
 	}
 
 }
