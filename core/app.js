@@ -321,6 +321,16 @@ app.use(_.get("/employees",function *(){
   }
 }));
 
+app.use(_.get("/api/inventory",function *(){
+  var u = require('url');
+  var url = u.parse(this.url,true);
+  var inv = require('./app_modules/inventory');
+  var items = yield inv.advancedSearch(url.query);//text, username, exclude? third not used
+  var display = JSON.stringify(items, null, 2);
+  this.body = display;
+  // TODO May have to change this to not use stringify but currently works and looks better
+}));
+
 socket.start(app);
 
 socket.use(function*(next){

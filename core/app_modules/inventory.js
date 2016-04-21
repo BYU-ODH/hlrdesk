@@ -40,9 +40,52 @@ inventory.get = co.wrap(function*(call) {
   return yield Promise.resolve(results.rows[0]);
 });
 
+inventory.advancedSearch = co.wrap(function* (params) {//used for api from hlr.byu.edu
+  // Currently only supports single language and media type as hlr.byu only uses single option
+  var client = db();
+  var query = "SELECT inventory.call, title, quantity, is_reserve FROM inventory ";
+  var hasLanguage = false;
+  var hasMedia = false;
+  var lang, media;
+  if (params.language_code){
+    query+=" LEFT JOIN languages_items li on li.inventory_call = inventory.call " ;
+    lang = params.language_code;
+    delete params['language_code'];
+    hasLanguage = true;
+  }
+  if (params.media_items){
+    query+=" LEFT JOIN media_items mi on mi.call = inventory.call " ;
+    hasMedia = true;
+    media = params.media_items;
+    delete params['media_items'];
+  }
+  var len = Object.keys(params).length;
+  if (len>0){
+    query += " WHERE ";
+    var i = 0;
+    for (var item in params){
+      query += item + " ILIKE '%" + params[item] + "%'";
+      if (len%i!=0 && len!=1){query +=" AND ";}
+      i++;
+    }
+    if (hasLanguage)query+=" AND language_code = '" + lang +"'";
+    if (hasMedia)query+=" AND medium = '" + media + "' ";
+  }
+  else if(hasLanguage || hasMedia){
+    query+= " WHERE ";
+    if (hasLanguage)query+=" language_code = '" + lang + "'";
+    if (hasLanguage && hasMedia)query+= " AND";
+    if (hasMedia)query+=" medium = '" + media + "' ";
+  }
+  var result = yield client.query(query);
+  return result.rows;
+  // Currently returns everything in the database
+  // if nothing is specified, might want to change
+});
+
 inventory.search = co.wrap(function* (text, username, params) {
   assert(yield auth.isAdmin(username), 'Only admins can search the database. No searching for ' + username);
-  var items = [];
+  // var items = []; TODO is this is being used? Doesn't seem to be used anywhere
   var client = db();
 
   // TODO: This has a high cost; it may be beneficial enforce a limit on the
