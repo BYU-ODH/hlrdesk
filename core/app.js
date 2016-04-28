@@ -203,6 +203,13 @@ app.use(_.get("/languages", function*() {
   });
 }));
 
+app.use(_.get("/locations", function*() {
+  yield this.render('locations', {
+    layout: this.USE_LAYOUT,
+    locations: yield require('./app_modules/location').list
+  });
+}));
+
 app.use(_.get("/media", function*() {
   yield this.render('media', {
     layout: this.USE_LAYOUT,
