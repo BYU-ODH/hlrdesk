@@ -38,6 +38,7 @@ window.HLRDESK.init.editCatalog = function() {
       var title = $('#title').val();
       var media = $('#media').val();
       var languages = $('#language').val();
+      var location = $('#location').val();
       var quantity = parseInt($('#quantity').val(),10);
       var checkout_period = parseInt($('#checkoutLength').val(),10);
       var is_reserve = document.getElementById('onReserve').checked;
@@ -51,6 +52,7 @@ window.HLRDESK.init.editCatalog = function() {
           title,
           media,
           languages,
+          location,
           quantity,
           checkout_period,
           is_reserve,
@@ -76,6 +78,7 @@ window.HLRDESK.init.editCatalog = function() {
 
     $('#language').val(result.languages);
     $('#media').val(result.media);
+    $('#location').val(result.location);
 
     $('#title').val(result.title);
     $('#title').attr('placeholder', result.title);

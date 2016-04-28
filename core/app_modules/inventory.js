@@ -85,7 +85,8 @@ var upsert = co.wrap(function*(call, user, details, update) {
       'is_reserve',
       'is_duplicatable',
       'on_hummedia',
-      'notes'
+      'notes',
+      'location'
     ];
 
     var ignore = [

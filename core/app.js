@@ -149,11 +149,13 @@ app.use(_.get('/edit-catalog', function *() {
   var client = db();
   var media_types = yield client.query("SELECT * FROM media ORDER BY media ASC;");
   var lang = yield client.query("SELECT * FROM languages ORDER BY name ASC;");
+  var locations = yield client.query("SELECT * FROM locations ORDER BY name ASC;");
   yield this.render('edit-catalog', {
     title: "Edit Item",
     layout: this.USE_LAYOUT,
     media_types: media_types,
-    lang: lang
+    lang: lang,
+    locations: locations
   });
 }));
 

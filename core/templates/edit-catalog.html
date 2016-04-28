@@ -51,6 +51,15 @@
     <td><label for=checkoutLength>Checkout Period <br><span id=helper>In Days</span></label></td>
     <td><input  id="checkoutLength" type=number min=0 max=366 required ></td>
   </tr>
+  <tr>
+    <td><label for=location>Location</label></td>
+    <td>
+      <select id=location>
+      <% locations.rows.forEach(function(rows){%>
+      <option value="<%=rows.name %>"><%=rows.name %></option><%});%>
+      </select>
+    </td>
+  </tr>
     <tr>
     <td><label for=onReserve>Reserve Item</label> </td>
     <td><input type=checkbox id="onReserve"></td>
