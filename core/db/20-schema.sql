@@ -120,7 +120,7 @@ ALTER TABLE ONLY messages
 -- Name: inventory; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 CREATE TABLE locations (
-  location_name character varying(32) NOT NULL PRIMARY KEY
+  name character varying(32) NOT NULL PRIMARY KEY
 );
 
 CREATE TABLE inventory (

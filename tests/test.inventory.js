@@ -79,6 +79,13 @@ describe('inventory', function() {
       var result = yield inventory.get('DEADBEEF');
       expect(result.title).to.equal(props.title);
     });
+
+    it("should update location", function*() {
+      var props = {'location': 'Back Cabinet'};
+      yield inventory.update('tock', 'DEADBEEF', props);
+      var result = yield inventory.get('DEADBEEF');
+      expect(result.location).to.equal(props.location);
+    });
   });
 
   describe('#search(value, user, params)', function () {
