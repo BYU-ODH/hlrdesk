@@ -326,6 +326,13 @@ app.use(_.get("/employees",function *(){
   }
 }));
 
+app.use(_.get("/newsbox",function *(){
+  yield this.render('newsbox', {
+    layout: this.USE_LAYOUT,
+    newsbox: yield require('./app_modules/newsbox').list
+  });
+}));
+
 socket.start(app);
 
 socket.use(function*(next){
