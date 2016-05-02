@@ -16,20 +16,25 @@ $(document).ready(function(){
   });
   $('#dateSelector').on('change', function() {
     var selectedDate = new Date($(this).val()).setHours(24);
-    if (new Date(selectedDate).getDay() === 0) { //disables ability to select sundays
+    if (selectedDate < new Date().setHours(0,0,0,0)) { //disables ability to select previous days by forcing current day
+      $(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
+      selectedDate = new Date().setHours(0,0,0,0);
+    } else if (new Date(selectedDate).getDay() === 0) { //disables ability to select sundays by forcing the following monday
       $(this).val(new Date(selectedDate + 86400000).toISOString().substring(0,10));
       selectedDate = new Date($(this).val()).setHours(24);
     }
     if (currentView == 'multiple rooms') {
       displayedDate = $(this).val();
+      $('#roomsSelector').trigger('change', [currentView, displayedDate])
     } else {
       var dayDifference = (new Date(selectedDate).getDay()-1)*86400000;
-      displayedDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10); //Monday of that week
-
-      populateColumnDays(displayedDate)
-
+      mondayDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10); //Monday of that week
+      if (displayedDate !== mondayDate) {
+        displayedDate = mondayDate;
+        $('#roomsSelector').trigger('change', [currentView, displayedDate]);
+        populateColumnDays(displayedDate);
+      }
     }
-    $('#roomsSelector').trigger('change', [currentView, displayedDate])
   });
 
   function populateColumnDays(mondayDate) {
@@ -84,11 +89,11 @@ $(document).ready(function(){
       if (!$(this).hasClass('booked')) {
         $(this).addClass('hover');
         $(this).parent().children('th').addClass('hover');
+        selectedCells.length = 0;
         selectedCells.push($(this));
         currentlySelecting = true;
       } else {
-        alert('One day, this will make it possible to edit the event you just clicked')
-        //TODO: edit event
+        displayEditor($(this));
       }
     });
     $('td').mouseover(function(e) {
@@ -115,6 +120,7 @@ $(document).ready(function(){
         } else {
           currentlySelecting = false;
           clearSelection();
+          selectedCells.length = 0;
         }
       } else {
         clearSelection();
@@ -125,7 +131,6 @@ $(document).ready(function(){
         currentlySelecting = false;
         if (selectedCells.length > 0) {
           displayCreator(selectedCells.itemAt(0))
-          selectedCells.length = 0;
         }
       }
     });
@@ -138,8 +143,6 @@ $(document).ready(function(){
     prompt.css('top', '33%');
     prompt.show();
     creatorText(cell);
-    $('#visibleGrid').addClass('blurred')
-    $('#headerBar').addClass('blurred')
 
     $('#eventCreator header').mousedown(function(e){
       drag(e, $(this).parent())
@@ -223,10 +226,118 @@ $(document).ready(function(){
 
   }
 
+  function displayEditor(cell) {
+    var firstCell = cell.data('cells')[0];
+    for (var i = 0; i < currentEvents.length; i++) {
+      if (currentEvents[i].id == cell.data('event')) {
+        var cellEvent = currentEvents[i];
+        break;
+      }
+    }
+
+    $('#eventEditor header').mousedown(function(e){
+      drag(e, $(this).parent())
+    });
+
+    cloak('');
+
+    var sharedEventCells = cell.data('cells');
+    for (var i = 0; i < sharedEventCells.length; i++) {
+      sharedEventCells[i].addClass('hover')
+    }
+
+    var prompt = $('#eventEditor').show();
+    prompt.css('left', '33%');
+    prompt.css('top', '33%');
+
+    $('#editorDate').text('On '+new Date(new Date(cellEvent.date).setHours(24)).toDateString());
+
+    $('#editorDurationSelect').empty();
+    for (var i = 0, value = 0.5; i < getAvailableBlock(firstCell).length; i++, value = value+0.5) {
+      $('#editorDurationSelect').append($('<option>', {'value': value, 'text': value}));
+    }
+    $('#editorDurationSelect').val(sharedEventCells.length/2)
+    $('#editorDurationSelect').change(function() {
+      $('td').removeClass('hover');
+      $('th').removeClass('hover');
+      selectedCells = getAvailableBlock(firstCell, $(this).val());
+      highlightSelection(selectedCells);
+      editorText($(this).val());
+    });
+
+    $('#editorTime').val(firstCell.data('time'));
+    $('#editorTime > option').each(function() {
+      $(this).removeAttr('disabled');
+      var cellColumn = cell.attr('id').substring(0, cell.attr('id').indexOf('-'));
+      var c = $('#'+cellColumn+'-'+$(this).val().replace('.','\\.'));
+      if (c.hasClass('booked') && c.data('event') !== cell.data('event')) {
+        $(this).attr('disabled', 'disabled');
+      }
+    });
+    $('#editorTime').change(function() {
+      var cellColumn = cell.attr('id').substring(0, cell.attr('id').indexOf('-'));
+      firstCell = $('#'+cellColumn+'-'+$(this).val().replace('.','\\.'));
+      selectedCells = getAvailableBlock(firstCell, $('#editorDurationSelect').val());
+      $('#editorDurationSelect').empty();
+      for (var i = 0, value = 0.5; i < getAvailableBlock(firstCell).length; i++, value = value+0.5) {
+        $('#editorDurationSelect').append($('<option>', {'value': value, 'text': value}));
+      }
+      $('#editorDurationSelect').val(selectedCells.length/2)
+      $('td').removeClass('hover');
+      $('th').removeClass('hover');
+      highlightSelection(selectedCells);
+    });
+
+    $('#editorEventName').val(cellEvent.name);
+
+    function highlightSelection(cells) {
+      for (c in selectedCells) {
+        if (selectedCells.hasOwnProperty(c)) {
+          var cell = selectedCells[c];
+          cell.addClass('hover');
+          cell.parent().children('th').addClass('hover')
+        }
+      }
+    }
+
+    function editorText(duration) {
+      var endTime = getAvailableBlock(firstCell).itemAt(Number(duration*2)-1).data('time')+0.5;
+      var endTimeReadable = (Math.floor(endTime<=13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
+      $('#editorEndTime').text(endTimeReadable)
+    }
+
+    function getAvailableBlock(cell, duration) {
+      if (!duration) {duration = 22}
+      var cellsInColumn = cell.data('room') ? $('[data-room="'+cell.data('room')+'"]') : $('[data-day="'+cell.data('day')+'"]');
+      var availableSlots = [];
+      for (var i = 0; i < cellsInColumn.length; i++) {
+        var c = $('#'+cellsInColumn[i].id.replace('.', '\\.'));
+        if (Number(c.data('time')) >= Number(cell.data('time'))) {
+         if ((!c.hasClass('booked') || c.data('event') == cell.data('event')) && Number(c.data('time')) - Number(firstCell.data('time')) < duration) {
+            availableSlots.push(c);
+          } else {
+            break;
+          }
+        }
+      }
+      return availableSlots;
+    }
+
+    $('#editorSave').click(function() {
+      alert("This doesn't do anything yet!")
+    });
+
+    $('#editorClose').click(function() {
+      selectedCells.length = 0;
+      clearSelection();
+    });
+  }
+
   function clearSelection() {
     $('td').removeClass('hover');
     $('th').removeClass('hover');
     $('#eventCreator').hide();
+    $('#eventEditor').hide();
     uncloak();
     $('#roomsSelector').prop('disabled', false);
   }
@@ -327,9 +438,6 @@ $(document).ready(function(){
       $(this).mouseover(function() {
         highlightEvent($(this));
       });
-      $(this).mouseleave(function() {
-        highlightEvent($(this));
-      });
     });
     uncloak();
   }
@@ -385,6 +493,7 @@ $(document).ready(function(){
     socket.emit('get events', {'user':window.user, 'rooms':rooms, 'date':date, 'token':'ABC123'});
   }
   socket.on('get events', function(events) {
+    //currentEvents.length = 0; TODO: This needs to reset. Where should that be done?
     for (var i = 0; i < events.length; i++) {
       if ('name' in events[i] && events[i].start_time != "21:00:00") {
         currentEvents.push(events[i]);
