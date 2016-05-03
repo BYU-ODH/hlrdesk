@@ -36,6 +36,7 @@ window.HLRDESK.init.editCatalog = function() {
     function updateDatabase(){
       var newCall = $('#callNumber').val();
       var title = $('#title').val();
+      var icn = $('#icn').val()
       var media = $('#media').val();
       var languages = $('#language').val();
       var quantity = parseInt($('#quantity').val(),10);
@@ -49,6 +50,7 @@ window.HLRDESK.init.editCatalog = function() {
           call: origCall,
           newCall,
           title,
+          icn,
           media,
           languages,
           quantity,
@@ -80,6 +82,9 @@ window.HLRDESK.init.editCatalog = function() {
     $('#title').val(result.title);
     $('#title').attr('placeholder', result.title);
 
+    $('#icn').val(result.icn);
+    $('#icn').attr('placeholder', result.icn);
+    
     $('#checkoutLength').val(result.checkout_period);
     $('#checkoutLength').attr('placeholder', result.checkout_period);
 
@@ -93,22 +98,22 @@ window.HLRDESK.init.editCatalog = function() {
       var date = result.date_added.substring(0,10);
     }
 
-    $('#dateAdded').val(date);
+    $('#dateAdded').text(date);
 
-    $('#editedBy').val(result.edited_by);
+    $('#editedBy').text(result.edited_by);
 
-    if ($('#editedBy').val())
+    if ($('#editedBy').text())
     {
       if(result.date_edited)
       {
         var edited = result.date_edited.substring(0,10);
         $('#dateEdited').attr('type', 'date');
-        $('#dateEdited').val(edited);
+        $('#dateEdited').text(edited);
       }
     }
     else{
-      $('#dateEdited').val(" N/A");
-      $('#editedBy').val(" N/A");
+      $('#dateEdited').text(" N/A");
+      $('#editedBy').text(" N/A");
      }
 
     $('#notes').val(result.notes);

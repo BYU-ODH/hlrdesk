@@ -81,6 +81,7 @@ var upsert = co.wrap(function*(call, user, details, update) {
       'call',
       'quantity',
       'title',
+      'icn',
       'checkout_period',
       'is_reserve',
       'is_duplicatable',

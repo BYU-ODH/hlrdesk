@@ -122,6 +122,7 @@ ALTER TABLE ONLY messages
 
 CREATE TABLE inventory (
   call character varying(32) NOT NULL,
+  icn character varying(16),
   quantity integer DEFAULT 1 NOT NULL,
   title character varying(255),
   checkout_period int default 1, --in days
