@@ -2,7 +2,41 @@ window.HLRDESK = window.HLRDESK || {};
 window.HLRDESK.init = window.HLRDESK.init || {};
 
 window.HLRDESK.init.newsbox = function initNewsbox() {
-  var newsEdit = document.getElementById('news-edit');
+  function onRowClick(tableId, callback) {
+    var table = document.getElementById(tableId),
+        rows = table.getElementsByTagName("tr");
+
+    for (var i = 0; i < rows.length; i++) {
+        table.rows[i].onclick = function (row) {
+            return function () {
+                callback(row);
+            };
+        }(table.rows[i]);
+    }
+  };
+  onRowClick("news-edit-table", function (row){
+    if((document.getElementById('news-edit-table').getElementsByTagName('td')).length > 9){
+      return;
+    }
+    for (var i = 0; i < 3; i++) {
+      var value = row.getElementsByTagName('td')[i].innerHTML;
+      if (i == 0) {
+        var src = row.getElementsByTagName('td')[i].getElementsByTagName('img')[0].src;
+        row.getElementsByTagName('td')[i].innerHTML = value + '<input id="'+ row.id + '-image-edit" type=text required value="' + src + '">'
+      } else {
+        row.getElementsByTagName('td')[i].innerHTML = '<textarea id="' + row.id + '-title" rows="5" cols="40" name=title required>' + value + '</textarea>';
+      }
+    }
+    var added = row.insertCell(3)
+    added.innerHTML = '<input id=' + row.id + '-delete-btn type=submit class=redBtn value="Delete"><input id=' + row.id + '-update-btn type=submit class=greenBtn value="Update">';
+    var newsEdit = document.getElementById(row.id + '-update-btn');
+    newsEdit.addEventListener('click', updateNews);
+  });
+
+  function updateNews(evt){
+    evt.preventDefault()
+    console.log("we are here!");
+  }
   // var langAdd = document.getElementById('lang-add');
 
 //   langEdit.onsubmit = function(evt) {

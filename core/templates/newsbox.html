@@ -1,52 +1,18 @@
 <section id=newsbox>
   <h1>News Box</h1>
-  <table>
-    <th>
-      <td>Image</td>
-      <td>Title</td>
-      <td>Body</td>
-    </th>
-    <% newsbox.forEach(function(news) { %>
-      <tr>
-        <td><%= news.img_link %></td>
-        <td><%= news.heading %></td>
-        <td><%= news.body %></td>
-      </tr>
-    <% }); %>
-  </table>
-
-  <form id=news-edit>
-    <h2>Edit Language</h2>
-    <fieldset>
-      <div class=field-holder>
-        <label for=news-image-edit>Image</label>
-        <input id=news-image-edit type=file name=image-link required>
-      </div>
-      <div class=field-holder>
-        <label for=news-title-edit>Title</label>
-        <input type=text name=news-title-edit id=news-title-edit required>
-      </div>
-      <div class=field-holder>
-        <label for=news-body-edit>Body</label>
-        <input type=textarea name=news-body-edit id=news-body-edit required>
-      </div>
-      <input id=news-delete-btn type=submit class=redBtn value='Delete'>
-      <input id=news-update-btn type=submit class=greenBtn value='Update'>
-    </fieldset>
+  <form id=news-edit-form>
+    <table id=news-edit-table>
+      <th>Image</th>
+      <th>Title</th>
+      <th>Body</th>
+      <% newsbox.forEach(function(news, index) { %>
+        <tr id='news<%= index %>'>
+          <td><img id='newsimage<%= index %>' src="<%= news.img_link %>" alt="News Image" /></td>
+          <td><%= news.heading %></td>
+          <td><%= news.body %></td>
+        </tr>
+      <% }); %>
+    </table>
   </form>
-  <!-- <form id=lang-add>
-    <fieldset>
-      <legend>Add Language</legend>
-      <div class=field-holder>
-        <label for=lang-code>Code</label>
-        <input id=lang-code type=text name=code required maxsize pattern=".{3}" placeholder=eng>
-      </div>
-      <div class=field-holder>
-        <label for=lang-name>Name</label>
-        <input type=text name=langName id=lang-name required placeholder=English>
-      </div>
-      <input type=submit class=greenBtn value=Create>
-    </fieldset>
-  </form> -->
 </section>
 <script>window.HLRDESK.init.newsbox();</script>

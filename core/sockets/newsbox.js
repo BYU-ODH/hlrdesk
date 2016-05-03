@@ -2,7 +2,7 @@ var db = require('../app_modules/db');
 var newsbox = require('../app_modules/newsbox');
 var auth = require('../app_modules/auth');
 
-// module.exports = function(socket, app) {
+module.exports = function(socket, app) {
 //   socket.on('lang.update', function(event) {
 //     var that = this;
 //
@@ -63,5 +63,5 @@ var auth = require('../app_modules/auth');
 //           ' [' + event.code + ']. Does it already exist?');
 //       });
 //     });
-//   });
-// };
+// });
+};
