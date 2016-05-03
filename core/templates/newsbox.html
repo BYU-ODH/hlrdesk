@@ -7,12 +7,13 @@
       <th>Body</th>
       <% newsbox.forEach(function(news, index) { %>
         <tr id='news<%= index %>'>
-          <td><img id='newsimage<%= index %>' src="<%= news.img_link %>" alt="News Image" /></td>
+          <td id='<%= news.news_id %>'><img id='newsimage<%= index %>' src="<%= news.img_link %>" alt="News Image" /></td>
           <td><%= news.heading %></td>
           <td><%= news.body %></td>
         </tr>
       <% }); %>
     </table>
+    <button id="addNews" class="mainBtn" type="button">Add News</button>
   </form>
 </section>
 <script>window.HLRDESK.init.newsbox();</script>

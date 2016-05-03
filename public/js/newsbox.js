@@ -2,6 +2,11 @@ window.HLRDESK = window.HLRDESK || {};
 window.HLRDESK.init = window.HLRDESK.init || {};
 
 window.HLRDESK.init.newsbox = function initNewsbox() {
+  newsEditForm = document.getElementById('news-edit-form');
+  newsEditTable = document.getElementById('news-edit-table');
+  addNews = document.getElementById('addNews');
+  var socket = io();
+
   function onRowClick(tableId, callback) {
     var table = document.getElementById(tableId),
         rows = table.getElementsByTagName("tr");
@@ -15,7 +20,8 @@ window.HLRDESK.init.newsbox = function initNewsbox() {
     }
   };
   onRowClick("news-edit-table", function (row){
-    if((document.getElementById('news-edit-table').getElementsByTagName('td')).length > 9){
+    document.getElementById('addNews').disabled = "disabled";
+    if((row.getElementsByTagName('td')).length > 3){
       return;
     }
     for (var i = 0; i < 3; i++) {
@@ -28,150 +34,107 @@ window.HLRDESK.init.newsbox = function initNewsbox() {
       }
     }
     var added = row.insertCell(3)
-    added.innerHTML = '<input id=' + row.id + '-delete-btn type=submit class=redBtn value="Delete"><input id=' + row.id + '-update-btn type=submit class=greenBtn value="Update">';
+    added.innerHTML = '<input id=' + row.id + '-delete-btn type=submit class=redBtn value="Delete"><input id=' + row.id + '-update-btn type=submit class=greenBtn value="Update"><button id=cancel class=myBtn type="button" name="cancel" >Cancel</button>';
     var newsEdit = document.getElementById(row.id + '-update-btn');
+    var newsDelete = document.getElementById(row.id + '-delete-btn');
+    var cancel = document.getElementById('cancel');
     newsEdit.addEventListener('click', updateNews);
+    newsDelete.addEventListener('click', deleteNews);
+    cancel.addEventListener('click', resetform);
+
+    function updateNews(evt){
+      evt.preventDefault()
+      var news_id = row.getElementsByTagName('td')[0].id;
+      var img_link = row.getElementsByTagName('td')[0].getElementsByTagName('input')[0].value;
+      var heading = row.getElementsByTagName('td')[1].getElementsByTagName('textarea')[0].value;
+      var news_body = row.getElementsByTagName('td')[2].getElementsByTagName('textarea')[0].value;
+      socket.emit('news.update', {
+        news_id: news_id,
+        img_link: img_link,
+        heading: heading,
+        news_body: news_body,
+        token: window.HLRDESK.token
+      });
+    }
+
+    function deleteNews(evt){
+      evt.preventDefault()
+      var news_id = row.getElementsByTagName('td')[0].id;
+      socket.emit('news.remove', {
+        news_id: news_id,
+        token: window.HLRDESK.token
+      });
+    }
   });
 
-  function updateNews(evt){
-    evt.preventDefault()
-    console.log("we are here!");
-  }
-  // var langAdd = document.getElementById('lang-add');
+  socket.on('news.updateSuccess', updateNewsOption);
 
-//   langEdit.onsubmit = function(evt) {
-//     evt.preventDefault();
-//   };
-//
-//   langAdd.onsubmit = function(evt) {
-//     evt.preventDefault();
-//     createLanguage(
-//       langAdd.code.value,
-//       langAdd.langName.value
-//     );
-//   };
-//
-//   var children = langEdit.querySelectorAll('[type=submit]');
-//   for(var i = 0; i<children.length; i++) {
-//     children[i].addEventListener('click', handleEditSubmit);
-//   }
-//
-//   function handleEditSubmit(evt) {
-//     var el = evt.target || evt.srcElement;
-//
-//     if(el.id === 'lang-delete-btn') {
-//       removeLanguage(langEdit.code.value);
-//     }
-//     else if(el.id === 'lang-update-btn') {
-//       var newCode = langEdit.code.value;
-//       var oldCode = document.getElementById('lang-edit').dataset.oldCode;
-//       var newName = langEdit.langName.value;
-//       updateLanguage(oldCode, newCode, newName);
-//     }
-//   }
-//
-//   function removeLanguageOption(code) {
-//     window.HLRDESK.alert.flash('Language deleted!');
-//     var el = document.querySelector('#langlist option[data-code="' + code + '"]');
-//     if(el) {
-//       document.getElementById('langlist').remove(el);
-//     }
-//     setEditFormDisabled(false);
-//   }
-//
-//   function setEditFormDisabled(bool) {
-//     langEdit.querySelector('fieldset').disabled = bool;
-//     var submit = langEdit.querySelectorAll('input[type=submit]');
-//     for(var i = 0; i<submit.length; i++) {
-//       submit[i].disabled = bool;
-//     }
-//     langSearch.disabled = bool;
-//   }
-//
-//   function setCreateFormDisabled(bool) {
-//     langAdd.querySelector('fieldset').disabled = bool;
-//     var submit = langAdd.querySelectorAll('input[type=submit]');
-//     for(var i = 0; i<submit.length; i++) {
-//       submit[i].disabled = bool;
-//     }
-//   }
-//
-//   function updateLanguage(oldCode, newCode, newName) {
-//     setEditFormDisabled(true);
-//     socket.emit('lang.update', {
-//       oldCode: oldCode,
-//       newCode: newCode,
-//       newName: newName,
-//       token: window.HLRDESK.token
-//     });
-//   }
-//
-//   function removeLanguage(code) {
-//     setEditFormDisabled(true);
-//     socket.emit('lang.remove', {
-//       code: code,
-//       token: window.HLRDESK.token
-//     });
-//   }
-//
-//   function createLanguage(code, name) {
-//     setCreateFormDisabled(true);
-//     socket.emit('lang.create', {
-//       code: code,
-//       name: name,
-//       token: window.HLRDESK.token
-//     });
-//   }
-//
-//   var socket = io();
-//
-//   langSearch.addEventListener('input', handleSearch);
-//
-//   socket.on('alert', function(data){
-//     setEditFormDisabled(false);
-//     setCreateFormDisabled(false);
-//     window.HLRDESK.alert.error(data);
-//   });
-//   socket.on('lang.itemRemoved', removeLanguageOption);
-//   socket.on('lang.itemAdded', addLanguageOption);
-//   socket.on('lang.updateSuccess', updateLanguageOption);
-//
-//   function updateLanguageOption(data) {
-//     window.HLRDESK.alert.flash('Language updated!');
-//     var opt = document.querySelector('#langlist option[data-code=' + data.oldCode + ']');
-//     opt.dataset.name = data.newName;
-//     opt.dataset.code = data.newCode;
-//     opt.value = data.newName + ' [' + data.newCode + ']';
-//     setEditFormDisabled(false);
-//   }
-//
-//   function addLanguageOption(data) {
-//     window.HLRDESK.alert.flash('Language added!');
-//     var opt = document.createElement('option');
-//     opt.dataset.code = data.code;
-//     opt.dataset.name = data.name;
-//     opt.value = data.name + ' [' + data.code + ']';
-//     document.getElementById('langlist').appendChild(opt);
-//     setCreateFormDisabled(false);
-//   }
-//
-//   function handleSearch(evt) {
-//     var el = evt.target || evt.srcElement;
-//     var val = el.value;
-//     if(!val) {
-//       langEdit.classList.remove('active');
-//       return;
-//     }
-//     var sanitizedSearch = val.replace(/"/g,'\\"');
-//     var selector = '#langlist option[value="' + sanitizedSearch + '"]';
-//     var opt =  document.querySelector(selector);
-//
-//     if(!opt) {
-//       return;
-//     }
-//     langEdit.classList.add('active');
-//     langEdit.dataset.oldCode = opt.dataset.code;
-//     langEdit.code.value = opt.dataset.code;
-//     langEdit.langName.value = opt.dataset.name;
-//   }
+  function updateNewsOption() {
+    resetform();
+    window.HLRDESK.alert.flash('NewsBox updated!');
+  }
+
+  socket.on('news.itemRemoved', removeNewsOption);
+
+  function removeNewsOption(code) {
+    resetform();
+    window.HLRDESK.alert.flash('News story deleted!');
+  }
+
+  function resetform(){
+    location.reload();
+  }
+
+  addNews.onclick = function() {
+    document.getElementById('addNews').disabled = "disabled";
+    newsEditTable.insertRow(-1);
+    var last_row = newsEditTable.rows[ newsEditTable.rows.length - 1];
+    for (var i = 0; i < 4; i++){
+      var cell = last_row.insertCell(-1);
+      switch(i) {
+        case 0:
+          cell.innerHTML = '<input id="new-img-link" type=text required value="">'
+          break;
+        case 1:
+          cell.innerHTML = '<textarea id="new-img-heading" rows="5" cols="40" name=title required></textarea>'
+          break;
+        case 2:
+          cell.innerHTML = '<textarea id="new-img-body" rows="5" cols="40" name=title required></textarea>'
+          break;
+        case 3:
+          cell.innerHTML = '<input id="news-add-btn" type=submit class=greenBtn value="Save"><button id=cancel class=myBtn type="button" name="cancel" >Cancel</button>'
+          break;
+      }
+    }
+    var newsAdd = document.getElementById('news-add-btn');
+    var cancel = document.getElementById('cancel');
+
+    newsAdd.addEventListener('click', addNews);
+    cancel.addEventListener('click', resetform);
+
+    function addNews(evt){
+      evt.preventDefault()
+      var img_link = document.getElementById('new-img-link').value;
+      var heading = document.getElementById('new-img-heading').value;
+      var news_body = document.getElementById('new-img-body').value;
+      socket.emit('news.add', {
+        img_link: img_link,
+        heading: heading,
+        news_body: news_body,
+        token: window.HLRDESK.token
+      });
+    }
+  }
+
+  socket.on('news.itemAdded', addNewsOption);
+
+  function addNewsOption(data) {
+    location.reload();
+    window.HLRDESK.alert.flash('News Story Added!');
+  }
+
+  socket.on('alert', function(data){
+    window.HLRDESK.alert.error(data);
+  });
+
 };

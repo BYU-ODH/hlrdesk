@@ -7,7 +7,7 @@ module.exports = {
     return yield Promise.resolve(true);
   }),
   update: co.wrap(function*(news_id, heading, body, img_link) {
-    var rowsAffected = yield db().nonQuery('UPDATE NEWSBOX SET heading=$2, body=$3, img_link=$4, WHERE news_id=$1', [news_id, heading, body, img_link]);
+    var rowsAffected = yield db().nonQuery('UPDATE NEWSBOX SET heading=$2, body=$3, img_link=$4 WHERE news_id=$1', [news_id, heading, body, img_link]);
     if(rowsAffected < 1) {
       return yield Promise.reject('News section could not be updated.');
     }
@@ -16,7 +16,7 @@ module.exports = {
   // delete is a reserved word, so I'm using 'remove'
   remove: co.wrap(function*(news_id) {
     var client = db();
-    var rowsAffected = yield client.nonQuery('DELETE FROM languages WHERE news_id=$1', [news_id]);
+    var rowsAffected = yield client.nonQuery('DELETE FROM NEWSBOX WHERE news_id=$1', [news_id]);
     if(rowsAffected < 1) {
       return yield Promise.reject('News section could not be deleted.');
     }
