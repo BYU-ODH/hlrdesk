@@ -46,7 +46,7 @@ if(ENV.NODE_TEST === 'true') {
 }
 
 app.use(function*(next){
-  const WHITELIST = ['/signin', '/logmein', '/logout'];
+  const WHITELIST = ['/signin', '/logmein', '/logout', '/rss'];
   const GREYLIST = WHITELIST.concat(['/calendar']);
   if (!this.session.user && WHITELIST.indexOf(this.request.path) === -1){
     this.session.login_redirect = this.request.path + this.request.search;
@@ -324,6 +324,25 @@ app.use(_.get("/employees",function *(){
     }
     return
   }
+}));
+
+app.use(_.get("/rss",function *(){
+  var rss = require('rss');
+  var newsbox = yield require('./app_modules/newsbox').list;
+  var feed = new rss({
+    title: 'NewsBox',
+    feed_url: 'http://' + ENV.HLRDESK_HOST + ENV.PORT + '/rss',
+    site_url: 'http://' + ENV.HLRDESK_HOST + ENV.PORT
+  });
+  newsbox.forEach(function(news, index) {
+    feed.item({
+      title:  news.heading,
+      description: news.body,
+      url: news.img_link
+    });
+  });
+  this.set('Content-Type', 'application/rss+xml');
+  this.body = feed.xml();
 }));
 
 app.use(_.get("/newsbox",function *(){
