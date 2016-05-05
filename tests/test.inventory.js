@@ -84,22 +84,22 @@ describe('inventory', function() {
   describe('#search(value, user, params)', function () {
     it('should return an array when items are found', function* () {
       var user = 'tock';
-      expect(yield inventory.search('HELLO', user)).to.be.an.instanceof(Array);
+      expect(yield inventory.search('HELLO', ' AND (l.name LIKE(\'%\')OR l.name IS null) ', ' AND (m.medium LIKE(\'%\')OR m.medium IS null) ', user)).to.be.an.instanceof(Array);
     });
     it('should return an empty array when no items are found', function* () {
       var user = 'tock';
-      var result = yield inventory.search('I-DO-NOT-EXIST', user);
+      var result = yield inventory.search('I-DO-NOT-EXIST', ' AND (l.name LIKE(\'%\')OR l.name IS null) ', ' AND (m.medium LIKE(\'%\')OR m.medium IS null) ', user);
       expect(result).to.be.an.instanceof(Array);
       expect(result.length).to.equal(0);
     });
     it('performs case-insensitive lookup in call number and title', function* () {
       var user = 'tock';
-      var result = yield inventory.search('borges', user);
+      var result = yield inventory.search('borges', ' AND (l.name LIKE(\'%\')OR l.name IS null) ', ' AND (m.medium LIKE(\'%\')OR m.medium IS null) ', user);
       expect(result.length).to.equal(2);
     });
     it('returns an item with appropriate and accurate fields', function* () {
       var user = 'tock';
-      var item = (yield inventory.search('ZAMB0N123', user))[0];
+      var item = (yield inventory.search('ZAMB0N123', ' AND (l.name LIKE(\'%\')OR l.name IS null) ', ' AND (m.medium LIKE(\'%\')OR m.medium IS null) ', user))[0];
       expect(item).to.contain.keys(['call_number', 'quantity', 'title']);
       expect(item.call_number).to.equal('ZAMB0N123');
       expect(item.quantity).to.equal(5);
@@ -290,7 +290,7 @@ describe('inventory', function() {
       var items = [{call: call, copy: copy, due: TOMORROW}];
 
       yield inventory.check_out(items, patron, employee);
-      var item = (yield inventory.search(call, employee))[0];
+      var item = (yield inventory.search(call, ' AND (l.name LIKE(\'%\')OR l.name IS null) ', ' AND (m.medium LIKE(\'%\')OR m.medium IS null) ', employee))[0];
       expect(item.copies_available.indexOf(copy)).to.equal(-1);
     });
   });

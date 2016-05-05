@@ -9,7 +9,7 @@ module.exports = function(socket, app) {
     var that = this;
     var params = {exclude: event.exclude};
 
-    inventory.search(event.text, this.user, params).then(function(results) {
+    inventory.search(event.text, event.language, event.media, this.user, params).then(function(results) {
       that.emit('inv.search.results', results);
     }).catch(function(e) {
       console.error(e);

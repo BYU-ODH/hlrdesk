@@ -151,7 +151,9 @@ CREATE TABLE languages (
 );
 
 CREATE TABLE media (
-  medium character varying(150) NOT NULL PRIMARY KEY
+  medium character varying(150) NOT NULL PRIMARY KEY,
+  code character varying(2),
+  fine_amount real DEFAULT 0.50
 );
 
 CREATE TABLE media_items (

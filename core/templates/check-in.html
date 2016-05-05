@@ -26,12 +26,15 @@
         id='<%= (item.due + item.call + item.owner + item.copy).replace(/\s+/g,'') %>'
         data-due='<%= item.due %>'
         data-call='<%= item.call %>'
+        data-overdue='<%= item.overdue %>'
+        data-price='<%= item.fine %>'
+        data-due='<%= item.due %>'
         data-patron='<%= item.owner %>'
         data-copy='<%= item.copy %>'
         class='<%= item.overdue? "overdue" : "" %>'
       >
 
-        <%if (item.media !== null) {%> <td><%= item.media %></td> <% } else { %> <td></td> <% } %>
+        <%if (item.media !== null) {%> <td title='<%= item.media_type %>' ><%= item.media %></td> <% } else { %> <td></td> <% } %>
         <td><%= item.call_number %></td>
         <td><%= item.name %></td>
         <td><%= item.owner %></td>

@@ -40,7 +40,7 @@ inventory.get = co.wrap(function*(call) {
   return yield Promise.resolve(results.rows[0]);
 });
 
-inventory.search = co.wrap(function* (text, username, params) {
+inventory.search = co.wrap(function* (text, language, media, username, params) {
   assert(yield auth.isAdmin(username), 'Only admins can search the database. No searching for ' + username);
   var items = [];
   var client = db();
@@ -59,8 +59,15 @@ inventory.search = co.wrap(function* (text, username, params) {
     '   WHERE subq.copies_available NOT IN ' +
     '     ( SELECT copy FROM checked_out WHERE checked_out.call=subq.call) ' +
     ' ) as foo ON foo.call = inv.call ' +
+    ' LEFT JOIN languages_items AS li ON inv.call = li.inventory_call ' +
+    ' LEFT JOIN languages AS l ON li.language_code = l.code ' +
+    ' LEFT JOIN media_items AS mi on inv.call = mi.call ' +
+    ' LEFT JOIN media AS m on m.medium = mi.medium ' +
     ' WHERE TRUE AND (LOWER(inv."call") LIKE LOWER(\'%\' || $1 || \'%\')' +
-    ' OR LOWER("title") LIKE LOWER(\'%\' || $1 || \'%\')) GROUP BY inv.call;';
+    ' OR LOWER("title") LIKE LOWER(\'%\' || $1 || \'%\')) ' +
+    language +
+    media +
+    ' GROUP BY inv.call;';
 
   var result = yield client.query(query, [text]);
 
@@ -288,8 +295,15 @@ Object.defineProperty(inventory, 'checked_out', {
                 '( SELECT array_agg(l.name) as languages FROM languages l ' +
                 'JOIN languages_items li ON li.language_code = l.code AND ' +
                 'li.inventory_call = i.call ), ' +
-                '( SELECT array_agg(m.medium) as media FROM media_items m ' +
-                'WHERE m.call = i.call ) ' +
+                '( SELECT array_agg(m.code) as media FROM media m ' +
+                'JOIN media_items mi ON mi.medium = m.medium AND ' +
+                'mi.call = i.call ), ' +
+                '( SELECT array_agg(m.medium) as media_type FROM media m ' +
+                'JOIN media_items mi ON mi.medium = m.medium AND ' +
+                'mi.call = i.call ), ' +
+                '( SELECT array_agg(m.fine_amount) as fine FROM media m ' +
+                'JOIN media_items mi ON mi.medium = m.medium AND ' +
+                'mi.call = i.call ) ' +
                 'FROM checked_out c JOIN inventory i ON c.call = i.call;';
 
     var results = (yield client.query(query)).rows;

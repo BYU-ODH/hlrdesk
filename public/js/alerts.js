@@ -33,6 +33,13 @@ window.HLRDESK = window.HLRDESK || {};
           pane.removeChild(el);
         }, FLASH_MESSAGE_FADEOUT_TIME);
       }, FLASH_MESSAGE_DURATION);
+    },
+
+    notice: function(message) {
+      var tpl = document.getElementById('tpl-notice-modal');
+      var el = document.importNode(tpl.content, true);
+      el.querySelector('.notice-message').textContent = message;
+      pl.displayModal(el);
     }
   }
 

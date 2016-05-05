@@ -1,6 +1,20 @@
 <section id=check-out>
   <form id=check-out-form class=check-out-form>
     <label class=check-out-main-label for=check-out-search>Enter an item or call number</label>
+    <select id="check-out-language" class="check-out-language">
+      <option value="" disabled selected>Filter By Specific Language</option>
+      <option value="">All</option>
+      <% languages.forEach(function(lang) { %>
+        <option value="<%= lang.name %>"><%= lang.name %></option>
+        <% }); %>
+    </select>
+    <select id="check-out-media" class="check-out-media">
+      <option value="" disabled selected>Filter By Specific Media</option>
+      <option value="">All</option>
+      <% media.forEach(function(medium) { %>
+        <option value="<%= medium %>"><%= medium %></option>
+        <% }); %>
+    </select>
     <input id=check-out-search class=check-out-search autofocus incremental name=search type=search placeholder="Nicolas Cage Collection, Vol. XII">
   </form>
   <div class=check-out-inventory>

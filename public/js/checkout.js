@@ -188,6 +188,8 @@ window.HLRDESK.init.checkout = function initCheckout() {
   window.HLRDESK.plugins.search({
     search: '#check-out-search',
     results: '#check-out-search-results',
+    language: '#check-out-language',
+    media: '#check-out-media',
     filter: searchFilter,
     clickCallback: function() {
       if(this.dataset.unavailable) {

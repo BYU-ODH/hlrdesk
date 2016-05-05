@@ -13,18 +13,18 @@ CREATE RULE "media_on_duplicate_ignore" AS ON INSERT TO "media"
                 WHERE (medium)=(NEW.medium))
   DO INSTEAD NOTHING;
 
-INSERT INTO media(medium) VALUES
-('AUDIO CASSETTE'),
-('VIDEO CASSETTE'),
-('VIDEO DISC'),
-('TEXT'),
-('COMPACT DISC (CD)'),
-('DIGITAL VIDEO DISC (DVD)'),
-('EQUIPMENT'),
-('ONLINE MEDIA'),
-('Kennedy Center Intercultural Outreach Collection'),
-('Video Game Media'),
-('Flash Cards');
+INSERT INTO media(medium, code) VALUES
+('AUDIO CASSETTE', 'AC'),
+('VIDEO CASSETTE', 'VC'),
+('VIDEO DISC', 'VD'),
+('TEXT', 'TX'),
+('COMPACT DISC (CD)', 'CD'),
+('DIGITAL VIDEO DISC (DVD)', 'DV'),
+('EQUIPMENT', 'EQ'),
+('ONLINE MEDIA', 'OM'),
+('Kennedy Center Intercultural Outreach Collection', 'KC'),
+('Video Game Media', 'VG'),
+('Flash Cards', 'FC');
 
 DROP RULE "media_on_duplicate_ignore" ON "media";
 

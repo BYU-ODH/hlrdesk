@@ -131,6 +131,8 @@ window.HLRDESK.init.editCatalog = function() {
 
   window.HLRDESK.plugins.search({
     search: '#editCatalog-search',
+    language: '#editCatalog-language',
+    media: '#editCatalog-media',
     results: '#editCatalog-search-results',
     hideCheckedOut: false,
     clickCallback: function()

@@ -147,7 +147,9 @@ app.use(_.get('/check-in', function *() {
 app.use(_.get('/check-out', function *() {
   yield this.render('check-out', {
     title: "Check Out",
-    layout: this.USE_LAYOUT
+    layout: this.USE_LAYOUT,
+    languages: yield require('./app_modules/language').list,
+    media: yield require('./app_modules/media').list,
   });
 }));
 
@@ -158,6 +160,8 @@ app.use(_.get('/edit-catalog', function *() {
   yield this.render('edit-catalog', {
     title: "Edit Item",
     layout: this.USE_LAYOUT,
+    languages: yield require('./app_modules/language').list,
+    media: yield require('./app_modules/media').list,
     media_types: media_types,
     lang: lang
   });
@@ -168,6 +172,8 @@ app.use(_.get('/viewHistory', function *() {
   yield this.render('view-history', {
     title: "Item History",
     layout: this.USE_LAYOUT,
+    languages: yield require('./app_modules/language').list,
+    media: yield require('./app_modules/media').list,
   });
 }));
 
