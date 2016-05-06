@@ -185,34 +185,27 @@
     <% } %>
 
     </template>
-
-    <div id='eventCreator' class='window' style="display:none">
-      <header>Create an event on...</header>
-      <p id='creatorDate'></p>
-      <p>For <select id='creatorDurationSelect'></select> hours</p>
-      <p id='creatorTime'></p>
-      <p id='creatorRoom'></p><br>
-      <p>Event name: <input type='text' id='creatorEventName'></input></p><br>
-      <p>Client's netid: <input type='text' id='clientNetid'></input></p>
-      <p class='halfSize'><input type='checkbox' id='clientIsOverseer'>Reservation is being made on behalf of someone else</input></p>
-      <p id='overseerNetid' style="display:none">Overseer's netid: <input type='text' id='overseerNetidBox'></input></p>
-      <button id='creatorSave' class='greenBtn'>Confirm</button><button id='creatorClose' class='redBtn'>Cancel</button>
-    </div>
-
-    <div id='eventEditor' class='window' style="display:none">
-      <header>Edit event</header>
-      <p id='editorDate'></p>
-      <p>For <select id='editorDurationSelect'></select> hours</p>
-      <p>From: <select id='editorTime'>
-        <% for (var i = 7; i < 21; i+=0.5) { %>
+    
+    <div id='eventWindow' class='window' style='display:none'>
+      <header id='eventHeader'></header>
+      <p id='eventDate'></p>
+      <p>From: <select id='eventTime'>
+        <% for (var i = 8; i < 21; i += 0.5) { %>
           <option value=<%= i %>><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %></option>
         <% } %>
-      </select> to <span id='editorEndTime'></span></p>
-      <p id='editorRoom'></p><br>
-      <p>Event name: <input type='text' id='editorEventName'></input></p><br>
-      <button id='deleteEvent' class='redBtn'>Delete Event</button><br>
-      <button id='editorSave' class='greenBtn'>Confirm Changes</button><button id='editorClose' class='redBtn'>Cancel</button>
+      </select> to <span id='eventEndTime'></span></p>
+      <p>For <select id='eventDurationSelect'></select> hours</p>
+      <p id='eventRoom'></p><br>
+      <p>Event name: <input type='text' id='eventName'></input></p><br>
+
+      <p class='creating'>Client's netid: <input type='text' id='clientNetid'></input></p>
+      <p class='halfSize creating'><input type='checkbox' id='clientIsOverseer'>Reservation is being made on behalf of someone else</input></p>
+      <p id='overseerNetid' style="display:none">Overseer's netid: <input type='text' id='overseerNetidBox'></input></p>
+
+      <button id='deleteEvent' class='redBtn editing'>Delete Event</button><br>
+      <button id='saveEvent' class='greenBtn'>Save</button><button id='cancel' class='redBtn'>Cancel</button>
     </div>
+
 
   </section>
 

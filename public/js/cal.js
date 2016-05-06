@@ -17,8 +17,8 @@ $(document).ready(function(){
   $('#dateSelector').on('change', function() {
     var selectedDate = new Date($(this).val()).setHours(24);
     if (selectedDate < new Date().setHours(0,0,0,0)) { //disables ability to select previous days by forcing current day
-      $(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
-      selectedDate = new Date().setHours(0,0,0,0);
+      //$(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
+      //selectedDate = new Date().setHours(0,0,0,0);
     } else if (new Date(selectedDate).getDay() === 0) { //disables ability to select sundays by forcing the following monday
       $(this).val(new Date(selectedDate + 86400000).toISOString().substring(0,10));
       selectedDate = new Date($(this).val()).setHours(24);
@@ -93,7 +93,9 @@ $(document).ready(function(){
         selectedCells.push($(this));
         currentlySelecting = true;
       } else {
-        displayEditor($(this));
+        //displayEditor($(this));
+        selectedCells = $(this).data('eventCells');
+        displayWindow();
       }
     });
     $('td').mouseover(function(e) {
@@ -130,214 +132,163 @@ $(document).ready(function(){
       if (currentlySelecting) {
         currentlySelecting = false;
         if (selectedCells.length > 0) {
-          displayCreator(selectedCells.itemAt(0))
+          //displayCreator(selectedCells.itemAt(0))
+          displayWindow(selectedCells.itemAt(0));
         }
       }
     });
   }
   changeGridTo('studyRooms');
 
-  function displayCreator(cell) {
-    var prompt = $('#eventCreator');
+  function displayWindow() {
+    var firstCell = selectedCells.itemAt(0);
+    var cellColumn = firstCell.attr('id').substring(0, firstCell.attr('id').indexOf('-'));
+    var prompt = $('#eventWindow');
     prompt.css('left', '33%');
     prompt.css('top', '33%');
     prompt.show();
-    creatorText(cell);
-
-    $('#eventCreator header').mousedown(function(e){
-      drag(e, $(this).parent())
-    });
-
     cloak('');
 
-    $('#creatorSave').click(function() {
-      alert("This doesn't do anything yet!")
+    if (firstCell.data('event')) {
+      var selectedEvent = firstCell.data('event');
+    }
+    var duration = selectedCells.length/2;
+    var startTime = Number(selectedCells.itemAt(0).data('time'));
+
+    $('#eventWindow header').mousedown(function(e){
+      drag(e, $(this).parent());
     });
 
-    $('#creatorClose').click(function() {
-      selectedCells.length = 0;
-      clearSelection();
-    });
-
-    function creatorText(startCell) {
-      if (startCell.data('day')) {
-        var dayValOf = {'monday':0, 'tuesday':1, 'wednesday':2, 'thursday':3, 'friday':4, 'saturday':5}
-        $('#creatorDate').text(new Date(new Date(displayedDate).setHours(24)+(86400000*dayValOf[selectedCells[0].data('day')])).toDateString());
-      } else {
-        var dateOfEvent = new Date(new Date(displayedDate).setHours(24));
-        $('#creatorDate').text(dateOfEvent.toDateString());
-      }
-
-      function getAvailableBlock(firstCell, duration) {
-        if (!duration) {duration = 22}
-        var cellsInColumn = firstCell.data('room') ? $('[data-room="'+firstCell.data('room')+'"]') : $('[data-day="'+firstCell.data('day')+'"]');
-        var newSelection = [];
-        for (var i = 0; i < cellsInColumn.length; i++) {
-          if (Number(cellsInColumn[i].dataset.time) >= firstCell.data('time')) {
-            if (!cellsInColumn[i].classList.contains('booked') && Number(cellsInColumn[i].dataset.time) - Number(firstCell.data('time')) < duration) {
-              newSelection.push($('#'+cellsInColumn[i].id.replace('.','\\.')));
-            } else {
-              break;
-            }
-          }
+    if (firstCell.hasClass('booked')) {
+      var editing = true;
+      $('#eventHeader').text('Edit Event');
+      $('.editing').show();
+      $('.creating').hide();
+      for (var i = 0; i < currentEvents.length; i++) {
+        if (currentEvents[i].id == firstCell.data('event')) {
+          var cellEvent = currentEvents[i];
+          break;
         }
-        return newSelection;
       }
-      $('#creatorDurationSelect').empty();
-      for (var i = 0, value = 0.5; i < getAvailableBlock(startCell).length; i++, value = value+0.5) {
-        $('#creatorDurationSelect').append($('<option>', {'value': value, 'text': value}));
-      }
-      $('#creatorDurationSelect').val(selectedCells.length/2);
-      $('#creatorDurationSelect').change(function() {
-        $('td').removeClass('hover');
-        $('th').removeClass('hover');
-        selectedCells = getAvailableBlock(startCell, $(this).val());
-        for (c in selectedCells) {
-          if (selectedCells.hasOwnProperty(c)) {
-            var cell = selectedCells[c];
-            cell.addClass('hover');
-            cell.parent().children('th').addClass('hover')
-         }
-        }
-        var endTime = Number(selectedCells.itemAt(-1).data('time')+0.5);
-        var endTimeReadable = (Math.floor(endTime<=13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
-        $('#creatorTime').text('From '+selectedCells.itemAt(0).data('timereadable')+' to '+endTimeReadable);
-      });
-      
-      var endTime = Number(selectedCells.itemAt(-1).data('time')+0.5);
-      var endTimeReadable = (Math.floor(endTime<=13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
-      $('#creatorTime').text('From '+selectedCells.itemAt(0).data('timereadable')+' to '+endTimeReadable);
-    
-      if (selectedCells[0].data('room')) {
-        $('#creatorRoom').text('In '+selectedCells.itemAt(0).data('room'));
-      } else {
-        $('#creatorRoom').text('In the '+$('#roomsSelector').val());
-      }
-
-      $('#overseerNetid').hide();
-      $('#clientIsOverseer').click(function() {
-        if ($(this).prop('checked')) {
-          $('#overseerNetid').show();
-        } else {
-          $('#overseerNetid').hide();
-        }
-      })
+      $('#eventName').val(cellEvent.name);
+    } else {
+      var editing = false;
+      $('#eventHeader').text('Create Event');
+      $('.editing').hide();
+      $('.creating').show();
+      $('#eventName').val('');
     }
 
-  }
-
-  function displayEditor(cell) {
-    var firstCell = cell.data('cells')[0];
-    for (var i = 0; i < currentEvents.length; i++) {
-      if (currentEvents[i].id == cell.data('event')) {
-        var cellEvent = currentEvents[i];
-        break;
-      }
-    }
-
-    $('#eventEditor header').mousedown(function(e){
-      drag(e, $(this).parent())
-    });
-
-    cloak('');
-
-    var sharedEventCells = cell.data('cells');
-    for (var i = 0; i < sharedEventCells.length; i++) {
-      sharedEventCells[i].addClass('hover')
-    }
-
-    var prompt = $('#eventEditor').show();
-    prompt.css('left', '33%');
-    prompt.css('top', '33%');
-
-    $('#editorDate').text('On '+new Date(new Date(cellEvent.date).setHours(24)).toDateString());
-
-    $('#editorDurationSelect').empty();
-    for (var i = 0, value = 0.5; i < getAvailableBlock(firstCell).length; i++, value = value+0.5) {
-      $('#editorDurationSelect').append($('<option>', {'value': value, 'text': value}));
-    }
-    $('#editorDurationSelect').val(sharedEventCells.length/2)
-    $('#editorDurationSelect').change(function() {
-      $('td').removeClass('hover');
-      $('th').removeClass('hover');
-      selectedCells = getAvailableBlock(firstCell, $(this).val());
-      highlightSelection(selectedCells);
-      editorText($(this).val());
-    });
-
-    $('#editorTime').val(firstCell.data('time'));
-    $('#editorTime > option').each(function() {
+    //Populate Time Options
+    $('#eventTime > option').each(function() {
       $(this).removeAttr('disabled');
-      var cellColumn = cell.attr('id').substring(0, cell.attr('id').indexOf('-'));
       var c = $('#'+cellColumn+'-'+$(this).val().replace('.','\\.'));
-      if (c.hasClass('booked') && c.data('event') !== cell.data('event')) {
+      if (c.hasClass('booked') && c.data('event') !== selectedCells.itemAt(0).data('event')) {
         $(this).attr('disabled', 'disabled');
       }
     });
-    $('#editorTime').change(function() {
-      var cellColumn = cell.attr('id').substring(0, cell.attr('id').indexOf('-'));
-      firstCell = $('#'+cellColumn+'-'+$(this).val().replace('.','\\.'));
-      selectedCells = getAvailableBlock(firstCell, $('#editorDurationSelect').val());
-      $('#editorDurationSelect').empty();
-      for (var i = 0, value = 0.5; i < getAvailableBlock(firstCell).length; i++, value = value+0.5) {
-        $('#editorDurationSelect').append($('<option>', {'value': value, 'text': value}));
+
+    updateStartTime();
+    updateDurationSelect();
+    updateDuration();
+    updateSelection();
+
+    //eventTime
+    $('#eventTime').change(function() {
+      updateStartTime($(this).val());
+    });
+    function updateStartTime(newStartTime) {
+      if (newStartTime) {
+        startTime = newStartTime;
       }
-      $('#editorDurationSelect').val(selectedCells.length/2)
+      $('#eventTime').val(startTime);
+      newFirstCell = $('#'+cellColumn+'-'+String(startTime).replace('.','\\.'));
+      firstCell = newFirstCell;
+      if (getAvailableBlock(newFirstCell).length < duration) {
+        duration = getAvailableBlock(newFirstCell).length/2;
+      }
+      selectedCells = getAvailableBlock(newFirstCell, duration);
+      updateDurationSelect();
+      updateDuration();
+      updateSelection();
+    }
+
+    //eventDurationSelect
+    function updateDurationSelect() {
+      $('#eventDurationSelect').empty();
+      for (var i = 0, value = 0.5; i < getAvailableBlock(firstCell).length; i++, value+=0.5) {
+        $('#eventDurationSelect').append($('<option>', {'value': value, 'text': value}));
+      }
+    }
+    $('#eventDurationSelect').change(function() {
+      updateDuration(Number($(this).val()));
+    });
+    function updateDuration(newDuration) {
+      if (newDuration) {
+        duration = newDuration;
+      }
+      $('#eventDurationSelect').val(duration);
+      updateSelection();
+    }
+
+    //table cells
+    function updateSelection() {
       $('td').removeClass('hover');
       $('th').removeClass('hover');
-      highlightSelection(selectedCells);
-    });
-
-    $('#editorEventName').val(cellEvent.name);
-
-    function highlightSelection(cells) {
+      selectedCells = getAvailableBlock(firstCell, duration);
       for (c in selectedCells) {
         if (selectedCells.hasOwnProperty(c)) {
-          var cell = selectedCells[c];
+          var cell = selectedCells.itemAt(c);
           cell.addClass('hover');
           cell.parent().children('th').addClass('hover')
         }
       }
-    }
-
-    function editorText(duration) {
-      var endTime = getAvailableBlock(firstCell).itemAt(Number(duration*2)-1).data('time')+0.5;
+      var endTime = Number(selectedCells.itemAt(-1).data('time')+0.5);
       var endTimeReadable = (Math.floor(endTime<=13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
-      $('#editorEndTime').text(endTimeReadable)
+      $('#eventEndTime').text(endTimeReadable);
     }
 
-    function getAvailableBlock(cell, duration) {
-      if (!duration) {duration = 22}
-      var cellsInColumn = cell.data('room') ? $('[data-room="'+cell.data('room')+'"]') : $('[data-day="'+cell.data('day')+'"]');
-      var availableSlots = [];
+    function getAvailableBlock(firstCell, duration) {
+      var cellsInColumn = firstCell.data('room') ? $('[data-room="'+firstCell.data('room')+'"]') : $('[data-day="'+firstCell.data('day')+'"]');
+      var newSelection = [];
       for (var i = 0; i < cellsInColumn.length; i++) {
-        var c = $('#'+cellsInColumn[i].id.replace('.', '\\.'));
-        if (Number(c.data('time')) >= Number(cell.data('time'))) {
-         if ((!c.hasClass('booked') || c.data('event') == cell.data('event')) && Number(c.data('time')) - Number(firstCell.data('time')) < duration) {
-            availableSlots.push(c);
+        cellToBeAdded = $('#'+cellsInColumn[i].id.replace('.','\\.'));
+        if (cellToBeAdded.data('time') >= firstCell.data('time') && cellToBeAdded.data('time') < firstCell.data('time')+(duration||22)) {
+          if (!cellToBeAdded.hasClass('booked') || cellToBeAdded.data('event') == selectedEvent) {//firstCell.data('event')) {
+            newSelection.push(cellToBeAdded);
           } else {
             break;
           }
         }
       }
-      return availableSlots;
+      return newSelection;
     }
 
-    $('#editorSave').click(function() {
+    $('#overseerNetid').hide();
+    $('#clientIsOverseer').prop('checked', false);
+    $('#clientIsOverseer').click(function() {
+      if ($(this).prop('checked')) {
+        $('#overseerNetid').show();
+      } else {
+        $('#overseerNetid').hide();
+      }
+    });
+
+    $('#saveEvent').click(function() {
       alert("This doesn't do anything yet!")
     });
 
-    $('#editorClose').click(function() {
+    $('#cancel').click(function() {
       selectedCells.length = 0;
       clearSelection();
     });
+
   }
 
   function clearSelection() {
     $('td').removeClass('hover');
     $('th').removeClass('hover');
-    $('#eventCreator').hide();
-    $('#eventEditor').hide();
+    $('.window').hide();;
     uncloak();
     $('#roomsSelector').prop('disabled', false);
   }
@@ -366,7 +317,7 @@ $(document).ready(function(){
 
   function highlightEvent(cell) {
     if (!currentlySelecting) {
-      var sharedEventCells = cell.data('cells');
+      var sharedEventCells = cell.data('eventCells');
       for (var i = 0; i < sharedEventCells.length; i++) {
         sharedEventCells[i].toggleClass('hover')
       }
@@ -434,7 +385,7 @@ $(document).ready(function(){
         }
       });
 
-      $(this).data('cells', sharedEventCells);
+      $(this).data('eventCells', sharedEventCells);
       $(this).mouseover(function() {
         highlightEvent($(this));
       });
@@ -478,7 +429,7 @@ $(document).ready(function(){
         }
       });
 
-      $(this).data('cells', sharedEventCells);
+      $(this).data('eventCells', sharedEventCells);
       $(this).mouseover(function() {
         highlightEvent($(this));
       });
