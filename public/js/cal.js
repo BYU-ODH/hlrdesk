@@ -243,6 +243,7 @@ $(document).ready(function(){
           cell.parent().children('th').addClass('hover')
         }
       }
+      console.log(selectedCells)
       var endTime = Number(selectedCells.itemAt(-1).data('time')+0.5);
       var endTimeReadable = (Math.floor(endTime<=13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
       $('#eventEndTime').text(endTimeReadable);
@@ -444,7 +445,6 @@ $(document).ready(function(){
     socket.emit('get events', {'user':window.user, 'rooms':rooms, 'date':date, 'token':'ABC123'});
   }
   socket.on('get events', function(events) {
-    //currentEvents.length = 0; TODO: This needs to reset. Where should that be done?
     for (var i = 0; i < events.length; i++) {
       if ('name' in events[i] && events[i].start_time != "21:00:00") {
         currentEvents.push(events[i]);
