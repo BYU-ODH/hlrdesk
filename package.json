@@ -57,7 +57,7 @@
     "email-overdue": "(export $(./.env.sh) && node --harmony bin/send-reminder-emails.js --overdue)",
     "z": "(npm run cool-start)",
     "install": "wget https://raw.githubusercontent.com/BYU-ODH/byu-odh.github.io/master/patternLibrary.js -O ./public/js/lib/patternLibrary.js; wget https://raw.githubusercontent.com/BYU-ODH/byu-odh.github.io/master/patternLibrary.scss -O ./core/sass/_patternLibrary.scss; wget https://raw.githubusercontent.com/BYU-ODH/byu-odh.github.io/master/colors.scss -O ./core/sass/_colors.scss",
-    "postinstall": "(export $(./.env.sh) && if [ \"$HLRDESK_DEV\" = \"true\" ]; then DEVELOPMENT_POSTGRES_URI=postgresql://$PGUSER:$PGPASS@$PGHOST:$PGPORT/$PGDATABASE core/db/drop-db.sh; cat core/db/*.sql |  psql; fi ); core/db/migration/migrate-db.sh;",
+    "postinstall": "(export $(./.env.sh) && if [ \"$HLRDESK_DEV\" = \"true\" ]; then DEVELOPMENT_POSTGRES_URI=postgresql://$PGUSER:$PGPASS@$PGHOST:$PGPORT/$PGDATABASE core/db/drop-db.sh; cat core/db/*.sql |  psql; fi; core/db/migration/migrate-db.sh;)",
     "compile-sass": "./.compile-sass.sh",
     "deploy": "./.deploy.sh"
   },
