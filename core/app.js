@@ -28,6 +28,11 @@ if(ENV.HLRDESK_DEV) {
   app.use(require('./app_modules/koa-sassy').Sassy);
 }
 
+process.on("uncaughtException", function(err) {
+  email.serverCrash(err.message, err.stack);
+  throw err;
+});
+
 app.keys = ['TODO MAKE ME AN ENV VARIABLE', 'I SHOULD NOT BE HARDCODED', 'MY DOG HAS NO NOSE', 'HOW DOES HE SMELL?', 'AWFUL'];
 app.use(session());
 

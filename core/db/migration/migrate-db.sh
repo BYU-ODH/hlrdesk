@@ -16,13 +16,13 @@ echo "Implementing Migrations"
 
 psql -c "select addcol('public','users', 'last_login', 'timestamp', 'current_timestamp');"
 psql -c "select addcol('public','media', 'fine_amount', 'real', '0.50');"
+psql -c "select addcol('public','media', 'code', 'varchar(2)', null);"
+psql -c "select addcol('public','inventory', 'icn', 'varchar(16)', null);"
 psql -c "CREATE TABLE newsbox (
           news_id serial PRIMARY KEY,
           heading character varying(250) NOT NULL,
           body character varying(1000) NOT NULL,
           img_link character varying(3000) NOT NULL);"
-psql -c "select addcol('public','media', 'code', 'varchar(2)');"
-psql -c "select addcol('public','inventory', 'icn', 'varchar(16)' );"
 
 
 tput setaf 6

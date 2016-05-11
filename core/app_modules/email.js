@@ -44,6 +44,16 @@ function Confirmation(from, time, room){
   return mailOptions
 };
 
+function Crash(message, stack){
+  var mailOptions = {
+    from: ENV.EMAIL + ' <' + ENV.EMAIL + '>',
+    to: ENV.EMAIL,
+    subject: 'Error in service: HLRDesk',
+    text: (new Date()).toUTCString() + "\n\n" + message + "\n\n" + stack
+  }
+  return mailOptions
+};
+
 // works for both reminders about upcoming items as well as reminders
 // about overdue items
 var Reminder = co.wrap(function * Reminder(items, name, email, template) {
@@ -104,6 +114,14 @@ module.exports = {
     }
     args.push('overdue.txt');
     return module.exports.reminder.apply(module.exports, args);
+  },
+
+  serverCrash: function(message, stack){
+    transporter.sendMail(Crash(message, stack), function(error, info){
+      if(error){
+        console.error(error);
+      }
+    });
   }
 
 };
