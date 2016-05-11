@@ -17,7 +17,8 @@ insert into users(netid) values
   ('dylanrh'),
   ('trevren1'),
   ('kw9'),
-  ('csamuels');
+  ('csamuels'),
+  ('sjtcmail');
 
 update users set admin='TRUE' where netid = 'pomi';
 update users set admin='TRUE' where netid = 'lecanii';
@@ -28,6 +29,7 @@ update users set admin='TRUE' where netid = 'prabbit';
 update users set admin='TRUE' where netid = 'trevren1';
 update users set telephone='515-555-5255' where netid = 'trevren1';
 update users set admin='TRUE' where netid = 'dylanrh';
+update users set admin='TRUE' where netid = 'sjtcmail';
 
 update users set telephone = '801-123-4567' where netid = 'csamuels';
 update users set email = 'fake@mailinator.com' where netid = 'kw9';

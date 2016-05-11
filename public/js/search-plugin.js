@@ -27,6 +27,8 @@ window.HLRDESK.plugins.search = function(parameters) {
 </li>';
 
   var searchEl = parameters.search;
+  var languageEl = parameters.language;
+  var mediaEl = parameters.media;
   var resultsEl = parameters.results;
 
   var socket = io();
@@ -60,7 +62,16 @@ window.HLRDESK.plugins.search = function(parameters) {
       });
     }
   }
-
+  var languageEls = document.querySelectorAll(languageEl);
+  for(var i = 0; i<languageEls.length; i++) {
+    var el = languageEls[i];
+    el.addEventListener('change', handleSearchEvt);
+  }
+  var mediaEls = document.querySelectorAll(mediaEl);
+  for(var i = 0; i<mediaEls.length; i++) {
+    var el = mediaEls[i];
+    el.addEventListener('change', handleSearchEvt);
+  }
   // param copy: integer
   // if -1, mark the item as unavailable
   // if 0 (or falsy) don't display the copy
@@ -95,7 +106,7 @@ window.HLRDESK.plugins.search = function(parameters) {
     }
     return li;
   }
-  
+
   function populateResults(items) {
     clearResults();
     var fragment = document.createDocumentFragment();
@@ -137,22 +148,32 @@ window.HLRDESK.plugins.search = function(parameters) {
     results.appendChild(fragment);
   }
 
-  
+
   function clearResults() {
     results.innerHTML='';
     resultsCount.innerText = '';
   };
-  
+
   function handleSearchEvt(evt) {
     var evt = evt || this;
-    var target = evt.target || evt.srcElement || evt.originalTarget;
-    var text = target.value;
+    if (evt.type == "search") {
+      var target = evt.target || evt.srcElement || evt.originalTarget;
+      var text = target.value;
+    } else {
+      var text = document.getElementsByClassName('check-out-search')[0].value;
+    }
+    var language = document.getElementsByClassName('check-out-language')[0].value;
+    language = language === '' ? ' AND (l.name LIKE(\'%\')OR l.name IS null) ' : ' AND (l.name like(\'%' + language + '%\')) '
+    var media = document.getElementsByClassName('check-out-media')[0].value;
+    media = media === '' ? ' AND (m.medium LIKE(\'%\')OR m.medium IS null) ' : ' AND (m.medium like(\'%' + media + '%\')) '
     if(text === '') {
       clearResults();
       return;
     }
     socket.emit('inv.search', {
       'text': text,
+      'language': language,
+      'media': media,
       token: window.HLRDESK.token
     });
   }

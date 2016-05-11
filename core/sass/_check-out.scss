@@ -17,13 +17,21 @@
     color: $byuBlue;
     margin-bottom: $label-margin-bottom;
   }
+
   .check-out-search {
     width: $search-width;
     font-size: 1em;
     height: $search-height;
     line-height: $search-height;
     border: solid $mainGreyHL 1px;
-
+  }
+  .check-out-language,
+  .check-out-media {
+    font-size: 1em;
+    height: $search-height;
+    line-height: $search-height;
+    border: solid $mainGreyHL 1px;
+    margin-bottom: 0.5em;
   }
   .check-out-inventory {
     width: $search-width;

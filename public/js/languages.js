@@ -2,7 +2,7 @@ window.HLRDESK = window.HLRDESK || {};
 window.HLRDESK.init = window.HLRDESK.init || {};
 
 window.HLRDESK.init.languages = function initLanguages() {
-  var langSearch = document.getElementById('lang-search');
+  var langSearch = $('#lang-search').select2();
   var langEdit = document.getElementById('lang-edit');
   var langAdd = document.getElementById('lang-add');
 
@@ -39,10 +39,8 @@ window.HLRDESK.init.languages = function initLanguages() {
 
   function removeLanguageOption(code) {
     window.HLRDESK.alert.flash('Language deleted!');
-    var el = document.querySelector('#langlist option[data-code="' + code + '"]');
-    if(el) {
-      document.getElementById('langlist').remove(el);
-    }
+    $("#lang-search option[data-code='" + code +"']").remove();
+    resetForms();
     setEditFormDisabled(false);
   }
 
@@ -92,7 +90,7 @@ window.HLRDESK.init.languages = function initLanguages() {
 
   var socket = io();
 
-  langSearch.addEventListener('input', handleSearch);
+  langSearch.change(handleSearch);
 
   socket.on('alert', function(data){
     setEditFormDisabled(false);
@@ -105,10 +103,14 @@ window.HLRDESK.init.languages = function initLanguages() {
 
   function updateLanguageOption(data) {
     window.HLRDESK.alert.flash('Language updated!');
-    var opt = document.querySelector('#langlist option[data-code=' + data.oldCode + ']');
+    var opt = document.querySelector('#lang-search option[data-code=' + data.oldCode + ']');
     opt.dataset.name = data.newName;
     opt.dataset.code = data.newCode;
     opt.value = data.newName + ' [' + data.newCode + ']';
+    opt.text = data.newName + ' [' + data.newcode + ']';
+    $("#lang-search").append(opt);
+    $("#lang-search option[data-code='" + data.oldCode +"']").remove();
+    resetForms();
     setEditFormDisabled(false);
   }
 
@@ -118,27 +120,29 @@ window.HLRDESK.init.languages = function initLanguages() {
     opt.dataset.code = data.code;
     opt.dataset.name = data.name;
     opt.value = data.name + ' [' + data.code + ']';
-    document.getElementById('langlist').appendChild(opt);
+    opt.text = data.name + ' [' + data.code + ']';
+    $("#lang-search").append(opt);
+    document.getElementById("lang-add").reset();
     setCreateFormDisabled(false);
   }
 
   function handleSearch(evt) {
     var el = evt.target || evt.srcElement;
     var val = el.value;
-    if(!val) {
-      langEdit.classList.remove('active');
-      return;
+    if (val == '') {
+      return
     }
-    var sanitizedSearch = val.replace(/"/g,'\\"');
-    var selector = '#langlist option[value="' + sanitizedSearch + '"]';
+    var selector = '#lang-search option[value="' + val + '"]';
     var opt =  document.querySelector(selector);
-
-    if(!opt) {
-      return;
-    }
     langEdit.classList.add('active');
     langEdit.dataset.oldCode = opt.dataset.code;
     langEdit.code.value = opt.dataset.code;
     langEdit.langName.value = opt.dataset.name;
+  }
+
+  function resetForms() {
+    langEdit.classList.remove('active');
+    $("#lang-search").select2("val", "");
+    document.getElementById("lang-add").reset();
   }
 };

@@ -23,10 +23,10 @@ before_install:
 - sh -e /etc/init.d/xvfb start
 
 # reqs. for publishing images to Google Cloud Storage
-- pip install --user gsutil
-- cp .travis/.boto ~/.boto
-- echo "[Credentials]" >> ~/.boto
-- echo "gs_oauth2_refresh_token = $gs_oauth2_refresh_token" >> ~/.boto
+#- pip install --user gsutil
+#- cp .travis/.boto ~/.boto
+#- echo "[Credentials]" >> ~/.boto
+#- echo "gs_oauth2_refresh_token = $gs_oauth2_refresh_token" >> ~/.boto
 
 after_success: >
 
@@ -60,21 +60,23 @@ notifications:
 
 # will be run regardless of success or failure
 after_script:
-  - export PATH=$PATH:~/.local/bin/ # gsutil is installed using pip install --user, so it's local
-  # upload screenshots to Google Cloud Storage
-  - gsutil cp -a public-read tests/screenshots/* "gs://byu-hlr-screenshots/$TRAVIS_BUILD_NUMBER-$TRAVIS_BRANCH-`git log --pretty=format:\"%s (%cn)\" | head -n 1`/"
-  - ./.gen-gh-pages.sh
-  # publish pages
-  - git checkout --orphan gh-pages
-  - rm -rf `find ./* -not -path "./gh-pages/*" -not -name "gh-pages" -not -path "./.git/*" -not -name ".git" -not -path "./.travis"`
-  - mv ./gh-pages/* .
-  - rmdir gh-pages
-  - git config --global user.email "travis@travis-ci.org"
-  - git config --global user.name "travis-ci"
-  - git add -A -f
-  - git commit -m "Travis build $TRAVIS_BUILD_NUMBER"
-  - git push -f --quiet "https://webnard:${GH_TOKEN}@github.com/byu-odh/hlrdesk" gh-pages:gh-pages > /dev/null 2>&1
-  - echo "See build screenshots on https://byu-odh.github.io/hlrdesk"
+  # TODO: Our Google Cloud storage  account has been used up; we don't have anything to push.
+
+  #  - export PATH=$PATH:~/.local/bin/ # gsutil is installed using pip install --user, so it's local
+  #  # upload screenshots to Google Cloud Storage
+  #  - gsutil cp -a public-read tests/screenshots/* "gs://byu-hlr-screenshots/$TRAVIS_BUILD_NUMBER-$TRAVIS_BRANCH-`git log --pretty=format:\"%s (%cn)\" | head -n 1`/"
+  #  - ./.gen-gh-pages.sh
+  #  # publish pages
+  #  - git checkout --orphan gh-pages
+  #  - rm -rf `find ./* -not -path "./gh-pages/*" -not -name "gh-pages" -not -path "./.git/*" -not -name ".git" -not -path "./.travis"`
+  #  - mv ./gh-pages/* .
+  #  - rmdir gh-pages
+  #  - git config --global user.email "travis@travis-ci.org"
+  #  - git config --global user.name "travis-ci"
+  #  - git add -A -f
+  #  - git commit -m "Travis build $TRAVIS_BUILD_NUMBER"
+  #  - git push -f --quiet "https://webnard:${GH_TOKEN}@github.com/byu-odh/hlrdesk" gh-pages:gh-pages > /dev/null 2>&1
+  #  - echo "See build screenshots on https://byu-odh.github.io/hlrdesk"
 
 
 addons:

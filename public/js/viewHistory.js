@@ -33,6 +33,8 @@ window.HLRDESK.init.viewHistory = function() {
   window.HLRDESK.plugins.search({
     search: '#editCatalog-search',
     results: '#editCatalog-search-results',
+    language: '#view-history-language',
+    media: '#view-history-media',
 
     clickCallback: function()
     {

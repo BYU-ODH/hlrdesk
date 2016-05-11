@@ -11,12 +11,8 @@ section#languages {
     margin: 1em auto;
   }
 
-  input[type=search] {
-    width: 90%;
-    display: block;
-    margin: auto;
-    font-size: 1.5em;
-    line-height: 2em;
+  .select2 {
+    margin-left: 10%;
   }
 
   form#lang-edit {

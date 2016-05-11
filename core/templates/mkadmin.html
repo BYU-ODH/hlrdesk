@@ -1,6 +1,8 @@
 <section id="admin_box">
   <form id="admin_form" method="POST">
     <input name="user" id='admin_name' type='text' placeholder="Admin's NetID"></input>
+    <input name="user_phone" id='admin_phone' type='text' placeholder="Phone Number"></input>
+    <input name="user_email" id='admin_email' type='text' placeholder="Email Address"></input>
     <button name="save" type="submit" id="saveButton" class="greenBtn">Save</button>
     <input type="hidden" id="csrf" value="<%=csrf%>" name="csrf">
     <input type="hidden" value="add" name="action">

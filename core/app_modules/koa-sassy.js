@@ -14,7 +14,7 @@ exports.Sassy = function *(next) {
     var sassdir = path.join(__dirname, '..', 'sass');
 
     try {
-      var css = sass.renderSync({
+      var result = sass.renderSync({
         file: path.join(sassdir, filename + '.scss'),
       });
     }catch(e) {
@@ -22,7 +22,7 @@ exports.Sassy = function *(next) {
       yield next;
       return;
     }
-    fs.writeFileSync(path.join(pubdir, filename + '.css'), css);
+    fs.writeFileSync(path.join(pubdir, filename + '.css'), result.css);
   }
   yield next;
 };

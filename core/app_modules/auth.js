@@ -100,18 +100,18 @@ module.exports = {
 
   check_id: check_id,
 
-  mkadmin: co.wrap(function*(user, netid, override) {
+  mkadmin: co.wrap(function*(user, employee, override) {
     var client = db();
-    var is_user = yield check_id(netid);
+    var is_user = yield check_id(employee.user);
     var user_is_admin = yield isAdmin(user);
     var add_user = is_user || override
     if (add_user && user_is_admin){
       if (is_user){
-        yield client.nonQuery("UPDATE users SET admin='TRUE' WHERE netid = $1;", [netid]);
+        yield client.nonQuery("UPDATE users SET admin='TRUE' WHERE netid = $1;", [employee.user]);
       }
       else{
-        yield client.nonQuery("INSERT INTO users (netid) values ($1);",[netid]);
-        yield client.nonQuery("UPDATE users SET admin='TRUE' WHERE netid = $1;", [netid]);
+        yield client.nonQuery("INSERT INTO users (netid, telephone, email) values ($1, $2, $3);",[employee.user, employee.user_phone, employee.user_email]);
+        yield client.nonQuery("UPDATE users SET admin='TRUE' WHERE netid = $1;", [employee.user]);
       }
       return yield Promise.resolve(true);
     }
