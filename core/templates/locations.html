@@ -1,11 +1,11 @@
 <section id=locations>
   <h1>Locations</h1>
-  <input id=loc-search list=loclist type=search placeholder='Search…'>
-  <datalist id=loclist>
-  <% locations.forEach(function(loc) { %>
-    <option data-name="<%= loc.name %>" value="<%= loc.name %>">
-  <% }); %>
-  </datalist>
+  <select id="loc-search" style="width: 75%">
+    <option value="" disabled selected>Select a Language...</option>
+    <% locations.forEach(function(loc) { %>
+      <option data-name="<%= loc.name %>" value="<%= loc.name %>"><%= loc.name %></option>
+    <% }); %>
+  </select>
   <form id=loc-edit>
     <fieldset>
       <legend>Edit Location</legend>

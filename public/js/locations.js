@@ -2,7 +2,7 @@ window.HLRDESK = window.HLRDESK || {};
 window.HLRDESK.init = window.HLRDESK.init || {};
 
 window.HLRDESK.init.locations = function initLocations() {
-  var locSearch = document.getElementById('loc-search');
+  var locSearch = $('#loc-search').select2();
   var locEdit = document.getElementById('loc-edit');
   var locAdd = document.getElementById('loc-add');
 
@@ -37,10 +37,8 @@ window.HLRDESK.init.locations = function initLocations() {
 
   function removeLocationOption(name) {
     window.HLRDESK.alert.flash('Location deleted!');
-    var el = document.querySelector('#loclist option[data-name="' + name + '"]');
-    if(el) {
-      document.getElementById('loclist').remove(el);
-    }
+    $('#loc-search option[data-name="' + name + '"]').remove();
+    resetForms();
     setEditFormDisabled(false);
   }
 
@@ -88,7 +86,7 @@ window.HLRDESK.init.locations = function initLocations() {
 
   var socket = io();
 
-  locSearch.addEventListener('input', handleSearch);
+  locSearch.change(handleSearch);
 
   socket.on('alert', function(data){
     setEditFormDisabled(false);
@@ -101,9 +99,14 @@ window.HLRDESK.init.locations = function initLocations() {
 
   function updateLocationOption(data) {
     window.HLRDESK.alert.flash('Location updated!');
-    var opt = document.querySelector('#loclist option[data-name="' + data.oldName + '"]');
+    var opt = document.querySelector('#loc-search option[data-name="' + data.oldName + '"]');
+    opt.remove();
+    var opt = document.createElement('option');
     opt.dataset.name = data.newName;
     opt.value = data.newName;
+    opt.text = data.newName;
+    $("#loc-search").append(opt);
+    resetForms();
     setEditFormDisabled(false);
   }
 
@@ -112,26 +115,28 @@ window.HLRDESK.init.locations = function initLocations() {
     var opt = document.createElement('option');
     opt.dataset.name = data.name;
     opt.value = data.name;
-    document.getElementById('loclist').appendChild(opt);
+    opt.text = data.name;
+    $("#loc-search").append(opt);
+    document.getElementById("loc-add").reset();
     setCreateFormDisabled(false);
   }
 
   function handleSearch(evt) {
     var el = evt.target || evt.srcElement;
     var val = el.value;
-    if(!val) {
-      locEdit.classList.remove('active');
+    if(val == '') {
       return;
     }
-    var sanitizedSearch = val.replace(/"/g,'\\"');
-    var selector = '#loclist option[value="' + sanitizedSearch + '"]';
+    var selector = '#loc-search option[value="' + val + '"]';
     var opt =  document.querySelector(selector);
-
-    if(!opt) {
-      return;
-    }
     locEdit.classList.add('active');
     locEdit.dataset.oldName = opt.dataset.name;
     locEdit.locName.value = opt.dataset.name;
+  }
+
+  function resetForms() {
+    locEdit.classList.remove('active');
+    $("#loc-search").select2("val", "");
+    document.getElementById("loc-add").reset();
   }
 };
