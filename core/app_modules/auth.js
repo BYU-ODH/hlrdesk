@@ -52,7 +52,7 @@ module.exports = {
      * wouldn't be necessary, and it may very well not be if
      * someone can get the tests to otherwise work.
      */
-    ctx.cookies.set('token', token, {maxAge: 0});
+    ctx.cookies.set('token', token, {maxAge: 0, signed: true});
 
     redisClient.sadd([token, obj.username]);
     redisClient.expire(token, 43200);

@@ -33,7 +33,7 @@ process.on("uncaughtException", function(err) {
   throw err;
 });
 
-app.keys = ['TODO MAKE ME AN ENV VARIABLE', 'I SHOULD NOT BE HARDCODED', 'MY DOG HAS NO NOSE', 'HOW DOES HE SMELL?', 'AWFUL'];
+app.keys = [ENV.COOKIE_KEY];
 app.use(session());
 
 app.use(serve(path.join(__dirname, '..', 'public')));
