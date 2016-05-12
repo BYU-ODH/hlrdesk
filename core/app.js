@@ -21,6 +21,7 @@ var email = require('./app_modules/email')
 var auth = require('./app_modules/auth')
 var db = require('./app_modules/db')
 var user = require('./app_modules/user');
+var utils = require('./app_modules/utils')
 const ENV = process.env;
 const SERVICE = auth.service(ENV.HLRDESK_HOST, ENV.PORT, '/signin', !ENV.HLRDESK_DEV);
 
@@ -342,8 +343,8 @@ app.use(_.get("/rss",function *(){
   var newsbox = yield require('./app_modules/newsbox').list;
   var feed = new rss({
     title: 'NewsBox',
-    feed_url: 'http://' + ENV.HLRDESK_HOST + ENV.PORT + '/rss',
-    site_url: 'http://' + ENV.HLRDESK_HOST + ENV.PORT
+    feed_url: utils.gen_url(ENV.HLRDESK_HOST, ENV.PORT, '/rss', !ENV.HLRDESK_DEV),
+    site_url: utils.gen_url(ENV.HLRDESK_HOST, ENV.PORT, '/', !ENV.HLRDESK_DEV)
   });
   newsbox.forEach(function(news, index) {
     feed.item({
