@@ -296,7 +296,7 @@ app.use(_.post("/employees",function *(){
 app.use(_.get("/employees",function *(){
   var isAdmin = yield auth.isAdmin(this.session.user);
   var client = db();
-  var allAdmins = yield client.query("SELECT netid, email FROM users WHERE admin = TRUE;");
+  var allAdmins = yield client.query("SELECT netid, email, telephone, admin FROM users WHERE admin = TRUE;");
   var netids = allAdmins.rows.map(function (a){return a.netid});
   var ldapDetails = yield user.ldapInfo.apply(null, netids);
   var names = Object.keys(ldapDetails).map(function(k){return ldapDetails[k].cn});
