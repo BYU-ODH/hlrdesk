@@ -2,11 +2,11 @@
   font-size: .7em;
 }
 
-.container { 
-  border:2px solid #ccc; 
-  width:300px; 
-  height: 100px; 
-  overflow-y: scroll; 
+.container {
+  border:2px solid #ccc;
+  width:300px;
+  height: 100px;
+  overflow-y: scroll;
 }
 
 td:hover {
@@ -17,6 +17,11 @@ td:hover {
 #newItem{
   float:right;
   margin-right: 6em;
+  margin-top: 1.5em;
+}
+#downloadItems{
+  float:right;
+  margin-right: 3em;
   margin-top: 1.5em;
 }
 
