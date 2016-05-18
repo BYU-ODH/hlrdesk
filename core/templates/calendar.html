@@ -96,7 +96,7 @@
               <th class="blank"></th>
               <% var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; %>
               <% for (var k=0; k<days.length; k++) { %>
-                <th id="<%= days[k].toLowerCase() %>Column" class="day"><%= days[k] %></th>
+                <th class="day"><%= days[k] %> <span id='<%=days[k].toLowerCase()%>Column'</th>
               <% } %>
             </tr>
           <% } else { %>
@@ -124,7 +124,7 @@
               <th class="blank"></th>
               <% var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; %>
               <% for (var k=0; k<days.length; k++) { %>
-                <th class="day"><%= days[k] %></th>
+                <th class="day"><%= days[k] %> <span id='<%=days[k].toLowerCase()%>Column'</th>
               <% } %>
             </tr>
           <% } else { %>
@@ -185,7 +185,7 @@
     <% } %>
 
     </template>
-    
+
     <div id='eventWindow' class='window' style='display:none'>
       <header id='eventHeader'></header>
       <p id='eventDate'></p>

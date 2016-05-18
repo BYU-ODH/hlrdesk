@@ -1,6 +1,7 @@
 #calendar {
 
 	-webkit-user-select: none;
+	overflow: hidden;
 
 	#headerBar
 	{
@@ -8,10 +9,16 @@
 		color: white;
 	}
 
+	#visibleGrid
+	{
+		height: 100%;
+	}
+
 	table
 	{
 		table-layout: fixed;
 		width: 97%;
+		height: 97%;
 		td
 		{
 			-webket-user-select: none;
@@ -22,6 +29,11 @@
 			font-size: 0.85em;
 		}
 		border-bottom: 1px solid $mainBlue;
+
+		.today
+		{
+			background: $mainBlueHL;
+		}
 	}
 
 	.blank, .time
@@ -36,7 +48,7 @@
 		background: $mainBlue;
 	}
 
-	.blank:hover, .time:hover, .day:hover
+	.blank:hover, .time:hover, .day:not(.today):hover
 	{
 		background: $mainBlue;
 	}
@@ -47,7 +59,7 @@
 		background: $mainBlueHL;
 	}
 
-	td:not(.booked):hover, .room:hover
+	td:not(.booked):not(.disabled):hover, .room:hover
 	{
 		transition: background 0.15s;
 		background: $mainBlueHL;
@@ -59,6 +71,11 @@
 		color: $mainBlue;
 		border-top: 0px solid $mainBlue;
 		border-bottom: 0px solid $mainBlue;
+	}
+
+	.disabled
+	{
+		background-image: linear-gradient(rgba(202, 201, 201, 0.66), rgba(202, 201, 201, 0.66)); //hacky way to tint cells
 	}
 
 	.top

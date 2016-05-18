@@ -40,18 +40,17 @@ $(document).ready(function(){
   function populateColumnDays(mondayDate) {
     var days = $('#daysHeader').children();
     for (var i = 1; i < days.length; i++) {
-      var dayColumn = $('#'+days[i].id);
-      dateToBeDisplayed = new Date((new Date(displayedDate).setHours(24)+((i-1)*86400000))).toDateString().substring(4, 10).replace(/\s0/, ' ');
-      if (dayColumn.text().indexOf(' ') == -1) {
-        dayColumn.text(dayColumn.text()+' '+dateToBeDisplayed);
-      } else {
-        dayColumn.text(dayColumn.text().substring(0, dayColumn.text().indexOf(' '))+' '+dateToBeDisplayed);
+      var dateSpan = $('#'+days[i].children[0].id);
+      var dateToBeDisplayed = new Date((new Date(displayedDate).setHours(24)+((i-1)*86400000))).toDateString();
+      if (dateToBeDisplayed == new Date().toDateString()) {
+        days[i].classList.add('today')
       }
+      dateSpan.text(dateToBeDisplayed.substring(4, 10).replace(/\s0/, ' '));
     }
   }
 
   function changeGridTo(view, date) {
-    $('#visibleGrid')[0].innerHTML = $('#'+view).html();
+    $('#visibleGrid').html($('#'+view).html());
     if (view == 'studyRooms' || view == 'otherRooms') {
       currentView = 'multiple rooms';
       $('.roomInfo').hide();
@@ -70,7 +69,7 @@ $(document).ready(function(){
         var roomInfoDiv = $('#'+roomNum);
         roomInfoDiv.stop().slideUp();
       });
-      getEventsFor(window.rooms[view], date);
+      getDayEventsForRooms(window.rooms[view], displayedDate);
     } else if (view == 'recordingStudio' || view == 'flac') {
       currentView = 'single room';
 
@@ -85,17 +84,20 @@ $(document).ready(function(){
         getEventsFor(window.rooms[15], date)
       }
     }
+    disablePastCells();
     $('td').mousedown(function() {
-      if (!$(this).hasClass('booked')) {
-        $(this).addClass('hover');
-        $(this).parent().children('th').addClass('hover');
-        selectedCells.length = 0;
-        selectedCells.push($(this));
-        currentlySelecting = true;
-      } else {
-        //displayEditor($(this));
-        selectedCells = $(this).data('eventCells');
-        displayWindow();
+      if (!$(this).hasClass('disabled')) {
+        if (!$(this).hasClass('booked')) {
+          $(this).addClass('hover');
+          $(this).parent().children('th').addClass('hover');
+          selectedCells.length = 0;
+          selectedCells.push($(this));
+          currentlySelecting = true;
+        } else {
+          //displayEditor($(this));
+          selectedCells = $(this).data('eventCells');
+          displayWindow();
+        }
       }
     });
     $('td').mouseover(function(e) {
@@ -132,7 +134,6 @@ $(document).ready(function(){
       if (currentlySelecting) {
         currentlySelecting = false;
         if (selectedCells.length > 0) {
-          //displayCreator(selectedCells.itemAt(0))
           displayWindow(selectedCells.itemAt(0));
         }
       }
@@ -140,11 +141,31 @@ $(document).ready(function(){
   }
   changeGridTo('studyRooms');
 
+  function disablePastCells() {
+    var allCells = $('td');
+    for (var i = 0; i < allCells.length; i++) {
+      var cell = $('#'+allCells[i].id.replace('.', '\\.'))
+      if (currentView == 'multiple rooms') {
+        if ((displayedDate == new Date().toISOString().substring(0, 10)) && (Number(cell.data('time')) <= new Date().getHours() + new Date().getMinutes()/60)) {
+          cell.addClass('disabled');
+        }
+      } else {
+        var days = {'sunday':0, 'monday':1, 'tuesday':2, 'wednesday':3, 'thursday':4, 'friday':5, 'saturday':6};
+        if (displayedDate == new Date(new Date().setDate(new Date().getDate()-(new Date().getDay()-1))).toISOString().substring(0, 10)) { //if dispalying current week
+          if ((days[cell.data('day')] < new Date().getDay()) || ((days[cell.data('day')] == new Date().getDay()) && Number(cell.data('time')) <= new Date().getHours() + new Date().getMinutes()/60)) { //if previous time
+            cell.addClass('disabled');
+          }
+        }
+      }
+    }
+  }
+
   function displayWindow() {
     var firstCell = selectedCells.itemAt(0);
     var cellColumn = firstCell.attr('id').substring(0, firstCell.attr('id').indexOf('-'));
     var prompt = $('#eventWindow');
-    prompt.css('left', '33%');
+    var windowLeft = (firstCell.offset().left < $('#visibleGrid').offset().left+($('#visibleGrid').outerWidth())/2) ? firstCell.offset().left + firstCell.outerWidth()*1.5 : firstCell.offset().left - (prompt.outerWidth() + firstCell.outerWidth()*0.5);
+    prompt.css('left', windowLeft+'px');
     prompt.css('top', '33%');
     prompt.show();
     cloak('');
@@ -177,6 +198,8 @@ $(document).ready(function(){
       $('.editing').hide();
       $('.creating').show();
       $('#eventName').val('');
+      $('#clientNetid').val('');
+      $('#overseerNetidBox').val('');
     }
 
     //Populate Time Options
@@ -189,9 +212,6 @@ $(document).ready(function(){
     });
 
     updateStartTime();
-    updateDurationSelect();
-    updateDuration();
-    updateSelection();
 
     //eventTime
     $('#eventTime').change(function() {
@@ -204,13 +224,12 @@ $(document).ready(function(){
       $('#eventTime').val(startTime);
       newFirstCell = $('#'+cellColumn+'-'+String(startTime).replace('.','\\.'));
       firstCell = newFirstCell;
-      if (getAvailableBlock(newFirstCell).length < duration) {
+      if (getAvailableBlock(newFirstCell).length/2 < duration) {
         duration = getAvailableBlock(newFirstCell).length/2;
       }
       selectedCells = getAvailableBlock(newFirstCell, duration);
       updateDurationSelect();
       updateDuration();
-      updateSelection();
     }
 
     //eventDurationSelect
@@ -228,6 +247,7 @@ $(document).ready(function(){
         duration = newDuration;
       }
       $('#eventDurationSelect').val(duration);
+      selectedCells = getAvailableBlock(firstCell, duration);
       updateSelection();
     }
 
@@ -235,7 +255,6 @@ $(document).ready(function(){
     function updateSelection() {
       $('td').removeClass('hover');
       $('th').removeClass('hover');
-      selectedCells = getAvailableBlock(firstCell, duration);
       for (c in selectedCells) {
         if (selectedCells.hasOwnProperty(c)) {
           var cell = selectedCells.itemAt(c);
@@ -243,7 +262,6 @@ $(document).ready(function(){
           cell.parent().children('th').addClass('hover')
         }
       }
-      console.log(selectedCells)
       var endTime = Number(selectedCells.itemAt(-1).data('time')+0.5);
       var endTimeReadable = (Math.floor(endTime<=13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
       $('#eventEndTime').text(endTimeReadable);
@@ -292,6 +310,14 @@ $(document).ready(function(){
     $('.window').hide();;
     uncloak();
     $('#roomsSelector').prop('disabled', false);
+    $('#eventTime').off('change');
+    $('#eventDurationSelect').off('change');
+    $('#clientIsOverseer').off('click');
+    $('#deleteEvent').off('click');
+    $('#saveEvent').off('click');
+    $('#cancel').off('click');
+    $('#eventWindow header').off('mousedown');
+    $('td').off('mouseover');
   }
 
   function drag(e, element){
@@ -316,7 +342,7 @@ $(document).ready(function(){
     .on('mousemove', handle_dragging);
   }
 
-  function highlightEvent(cell) {
+  function highlightEvent(cell) { //TODO: Not highlighting
     if (!currentlySelecting) {
       var sharedEventCells = cell.data('eventCells');
       for (var i = 0; i < sharedEventCells.length; i++) {
@@ -347,111 +373,67 @@ $(document).ready(function(){
 
 /////////////////////////////////////////////////BACKEND/////////////////////////////////////////
 
-  function placeEvents(events) { //get this organized into day/week
-    /*if (currentView == 'multiple rooms') {
-      var column = event.roomNumber;
-    } else {
-      //var column = event['days_of_week'];
-      console.log(event.date)
-    }*/
-    clearGrid();
-    for (var e = 0; e < events.length; e++) {
-      var event = events[e];
-      var days = {'Monday':1, 'Tuesday':2, 'Wednesday':3, 'Thursday':4, 'Friday':5, 'Saturday':6};
-      console.log(event['days_of_week'].split(','));
-      event.roomNumber = window.rooms[event.room].location.replace(' ','_');
-      var eventStart = Number(event.start_time.substring(0,2))+Number(event.start_time[4]==0?0:0.5)
-      var hourDiff = 0;
+  function getRoomEventsForWeek(room, monday) {
+    cloak('Loading...');
+    socket.emit('get room events', {'user':window.user, 'room':room, 'date':monday, 'token':'ABC123'});
+  }
 
-      var cell = $('#'+event.roomNumber+'-'+String(eventStart+hourDiff).replace('.','\\.'));
-      cell.addClass('top')
-      cell.text(event.name)
-      while (eventStart + hourDiff < Number(event.end_time.substring(0,2))) {
-        cell = $('#'+event.roomNumber+'-'+String(eventStart+hourDiff).replace('.','\\.'));
-        cell.addClass('booked')
-        cell.data('event', event.id)
-        hourDiff=hourDiff+0.5;
+  function getDayEventsForRooms(rooms, date) {
+    cloak('Loading...');
+    socket.emit('get all events', {'user':window.user, 'rooms':rooms, 'date':date, 'token':'ABC123'});
+  }
+
+  socket.on('get room events', function(events) {
+    placeRoomEvents(events);
+  })
+
+  function placeRoomEvents(events) {
+    for (var i = 0; i < events.length; i++) {
+      var event = events[i];
+      if (window.rooms[event.room]) {
+        eventRoom = window.rooms[event.room]['location'].replace(' ','_');
       }
-      cell.addClass('.bottom')
+      eventStart = event['start_time'].substring(0,2) + ((event['start_time'][3]=='3')?'.5':'');
+      eventEnd = event['end_time'].substring(0,2) + ((event['end_time'][3]=='3')?'.5':'');
+      
+      if (event.room == 0 || event.room == -2) {
+        $('[data-time="'+eventStart+'"]').addClass('booked')
+      } else {
+        cell = $('#'+eventRoom +'-'+ eventStart);
+        cell.addClass('booked') //TODO: flesh this out
+      }
 
+      
     }
-    $('.booked').each(function() {
-
-      var sharedEventCells = [];
-      var room = $(this).data('room');
-      var event = $(this).data('event');
-      $('[data-room="'+room+'"]').each(function() {
-        if ($(this).data('event') == event) {
-          sharedEventCells.push($(this));
-        }
-      });
-
-      $(this).data('eventCells', sharedEventCells);
-      $(this).mouseover(function() {
-        highlightEvent($(this));
-      });
-    });
     uncloak();
   }
 
-  /*function placeEvents(events) {
-    if (currentView == 'multiple rooms') {
-      for (var e = 0; e < events.length; e++) {
-        var event = events[e];
-        event.roomNumber = window.rooms[event.room].location.replace(' ','_');
-        var eventStart = Number(event.start_time.substring(0,2))+Number(event.start_time[4]==0?0:0.5)
-        var hourDiff = 0;
-
-        var cell = $('#'+event.roomNumber+'-'+String(eventStart+hourDiff).replace('.','\\.'));
-        cell.addClass('top')
-        cell.text(event.name)
-        while (eventStart + hourDiff < Number(event.end_time.substring(0,2))) {
-          cell = $('#'+event.roomNumber+'-'+String(eventStart+hourDiff).replace('.','\\.'));
-          cell.addClass('booked')
-          cell.data('event', event.id)
-          hourDiff=hourDiff+0.5;
-        }
-        cell.addClass('.bottom')
-
+  function placeWeekEvents(events) {
+    /*///////////////// applies to week
+    var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      var eventDays = event.days_of_week.split(',')
+      if (eventDays.indexOf(days[new Date(new Date(displayedDate).setHours(24)).getDay()]) != -1) {
+        console.log(event);
       }
-    } else if (currentView == 'single room') {
-      for (var e = 0; e < events.length; e++) {
-        var event = events[e];
+      /////////////////*/
+  }
 
-      }
-    }
-    $('.booked').each(function() {
-      var sharedEventCells = [];
-      var room = $(this).data('room');
-      var event = $(this).data('event');
-      $('[data-room="'+room+'"]').each(function() {
-        if ($(this).data('event') == event) {
-          sharedEventCells.push($(this));
-        }
-      });
-
-      $(this).data('eventCells', sharedEventCells);
-      $(this).mouseover(function() {
-        highlightEvent($(this));
-      });
-      $(this).mouseleave(function() {
-        highlightEvent($(this));
-      });
-    });
-  }*/
-
-  function getEventsFor(rooms, date) {
+  /*function getEventsFor(rooms, date) {
     cloak('Loading...');
     socket.emit('get events', {'user':window.user, 'rooms':rooms, 'date':date, 'token':'ABC123'});
+    console.log('request made')
+    console.log(rooms)
+    console.log(date)
   }
   socket.on('get events', function(events) {
+    console.log('request fulfilled')
     for (var i = 0; i < events.length; i++) {
       if ('name' in events[i] && events[i].start_time != "21:00:00") {
         currentEvents.push(events[i]);
       }
     }
-    placeEvents(currentEvents)
-  });
+    placeEvents(currentEvents);
+  });*/
 });
 
 //////////////////////////////////////PROTOTYPE MODIFICATIONS/////////////////////////////

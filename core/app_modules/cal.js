@@ -7,11 +7,39 @@ module.exports = {};
 
 var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-module.exports.getEvents = co.wrap(function*(rooms, date, token){
+module.exports.getRoomEvents = co.wrap(function*(room, date, token) {
+  var events = [];
+  var response = yield request('http://scheduler.hlrdev.byu.edu/rooms/'+room+'/events?token='+token+'&date='+date+'&token='+token+'&format=json');
+  console.log(response);
+});
+
+module.exports.getAllEvents = co.wrap(function*(date, rooms, token) {
+  var events = [];
+  var response = yield request('http://scheduler.hlrdev.byu.edu/rooms/events?token='+token+'&date='+date+'&format=json');
+  var allEvents = JSON.parse(response.body);
+
+  var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  
+  for (var i = 0; i < allEvents.length; i++) {
+
+    var eventDays = allEvents[i].days_of_week.split(',')
+    if (eventDays.indexOf(days[new Date(new Date(date).setHours(24)).getDay()]) != -1) {
+
+      if (allEvents[i].room in rooms || allEvents[i].room == 0 || allEvents[i].room == -2) {
+        events.push(allEvents[i]);
+      }
+
+    }
+
+  }
+  return(events)
+});
+
+/*module.exports.getEvents = co.wrap(function*(rooms, date, token){
   var allEvents = [];
   for (r in rooms) {
     var room = rooms[r].id;
-    var response = yield request('http://scheduler.hlrdev.byu.edu/rooms/'+room+'/events?token='+token+'&date='+date+'&format=json');
+    var response = yield request('http://scheduler.hlrdev.byu.edu/rooms/'+room+'/events?token='+token+'&date='+date );//+'&format=json');
     date = new Date(date)
     date.setHours(24);
     var events = JSON.parse(response.body);
@@ -31,7 +59,7 @@ module.exports.getEvents = co.wrap(function*(rooms, date, token){
   }
   console.log(allEvents)
   return allEvents;
-})
+});*/
 
 /*module.exports.addCalendarEvent = co.wrap(function*(username, event, user){
   var client = db();
