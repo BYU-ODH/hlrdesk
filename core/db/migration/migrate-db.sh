@@ -1,14 +1,14 @@
 #! /bin/sh
 
-tput setaf 6
+tput setaf 6 || true
 echo "Adding Database Migrations"
-tput setaf 5
+tput setaf 5 || true
 
 for i in core/db/migration/*.sql; do
   echo "Adding file: $i"
   psql -f "$i"
 done
-tput setaf 4
+tput setaf 4 || true
 
 echo "Implementing Migrations"
 #ADD MIGRATIONS BELOW
@@ -22,6 +22,6 @@ psql -c "create table IF NOT EXISTS locations(name varchar(32));"
 psql -c "select addcol('public','inventory','location','varchar(32) references locations', null);"
 # psql -c "alter table inventory add location varchar(32) references locations;"
 
-tput setaf 6
+tput setaf 6 || true
 echo "Database Migrations Added"
-tput setaf 7
+tput setaf 7 || true
