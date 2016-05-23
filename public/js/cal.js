@@ -79,9 +79,9 @@ $(document).ready(function(){
       populateColumnDays(displayedDate);
 
       if (view == 'recordingStudio') {
-        getEventsFor(window.rooms[13], date)
+        getRoomEventsForWeek(window.rooms[13], displayedDate)
       } else if (view == 'flac') {
-        getEventsFor(window.rooms[15], date)
+        getRoomEventsForWeek(window.rooms[15], displayedDate)
       }
     }
     disablePastCells();
@@ -101,7 +101,6 @@ $(document).ready(function(){
       }
     });
     $('td').mouseover(function(e) {
-      //if (e.buttons === 1) {
       if (currentlySelecting && !$(this).hasClass('booked')) {
         var fromCell = $('#'+(e.relatedTarget.id.replace('.','\\.')));
         var thisElementColumn = $(this).attr('id').substring(0, $(this).attr('id').indexOf('-'));
@@ -317,7 +316,7 @@ $(document).ready(function(){
     $('#saveEvent').off('click');
     $('#cancel').off('click');
     $('#eventWindow header').off('mousedown');
-    $('td').off('mouseover');
+    //$('td').off('mouseover');
   }
 
   function drag(e, element){
@@ -375,47 +374,88 @@ $(document).ready(function(){
 
   function getRoomEventsForWeek(room, monday) {
     cloak('Loading...');
-    socket.emit('get room events', {'user':window.user, 'room':room, 'date':monday, 'token':'ABC123'});
+    socket.emit('get week events', {'user':window.user, 'room':room, 'date':monday, 'token':'ABC123'});
   }
 
   function getDayEventsForRooms(rooms, date) {
     cloak('Loading...');
-    socket.emit('get all events', {'user':window.user, 'rooms':rooms, 'date':date, 'token':'ABC123'});
+    socket.emit('get day events', {'user':window.user, 'rooms':rooms, 'date':date, 'token':'ABC123'});
   }
 
-  socket.on('get room events', function(events) {
-    placeRoomEvents(events);
-  })
+  socket.on('get day events', function(events) {
+    placeDayEvents(events);
+  });
 
-  function placeRoomEvents(events) {
+  socket.on('get week events', function(events) {
+    placeWeekEvents(events);
+  });
+
+  function placeDayEvents(events) {
     for (var i = 0; i < events.length; i++) {
       var event = events[i];
       if (window.rooms[event.room]) {
         eventRoom = window.rooms[event.room]['location'].replace(' ','_');
       }
-      eventStart = event['start_time'].substring(0,2) + ((event['start_time'][3]=='3')?'.5':'');
-      eventEnd = event['end_time'].substring(0,2) + ((event['end_time'][3]=='3')?'.5':'');
+      eventStart = Number(event['start_time'].substring(event['start_time'][0]==='0' ? 1:0,2) + ((event['start_time'][3]=='3')?'.5':''));
+      eventEnd = Number(event['end_time'].substring(0,2) + ((event['end_time'][3]=='3')?'.5':''));
       
       if (event.room == 0 || event.room == -2) {
-        $('[data-time="'+eventStart+'"]').addClass('booked')
+        var cell = $('[data-time="'+eventStart+'"]').addClass('booked');
+        cell.addClass('top')
+        for (var j = eventStart; j < eventEnd; j+=0.5) {
+          $('[data-time="'+j+'"]').addClass('booked');
+          if (j == eventEnd - 0.5) {
+            $('[data-time="'+j+'"]').addClass('bottom');
+          }
+        }
       } else {
-        cell = $('#'+eventRoom +'-'+ eventStart);
-        cell.addClass('booked') //TODO: flesh this out
+        var cell = $('#'+eventRoom +'-'+ eventStart);
+        cell.addClass('top')
+        for (var j = eventStart; j < eventEnd; j+=0.5) {
+          $('#'+eventRoom +'-'+ String(j).replace('.','\\.')).addClass('booked');
+          if (j == eventEnd - 0.5) {
+            $('#'+eventRoom +'-'+ String(j).replace('.','\\.')).addClass('bottom');
+          }
+        }
+        cell.addClass('booked');
       }
 
-      
+      cell.text(event.name);
+    
     }
     uncloak();
   }
 
-  function placeWeekEvents(events) {
-    /*///////////////// applies to week
-    var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  function placeWeekEvents(events) { //TODO: Displays all events
+    console.log(events);
+    for (var i = 0; i < events.length; i++) {
+      var event = events[i];
+      eventStart = Number(event['start_time'].substring(event['start_time'][0]==='0' ? 1:0,2) + ((event['start_time'][3]=='3')?'.5':''));
+      eventEnd = Number(event['end_time'].substring(0,2) + ((event['end_time'][3]=='3')?'.5':''));
+      eventDays =  event.days_of_week.split(',');
+      
+      for (var j = 0; j < eventDays.length; j++) {
+        var cell = $('#'+eventDays[j].toLowerCase() +'-'+ eventStart);
+        cell.addClass('booked');
+        cell.addClass('top');
+        for (var k = eventStart; k < eventEnd; k+=0.5) {
+          $('#'+eventDays[j].toLowerCase() +'-'+ String(k).replace('.','\\.')).addClass('booked');
+          if (j == eventEnd - 0.5) {
+            $('#'+eventDays[j].toLowerCase() +'-'+ String(k).replace('.','\\.')).addClass('bottom');
+          }
+        }
+        cell.text(event.name);
+      }
+    
+    }
+    uncloak();
+    /*var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    for (var i = 0; i < events.length; i++) {
       var eventDays = event.days_of_week.split(',')
       if (eventDays.indexOf(days[new Date(new Date(displayedDate).setHours(24)).getDay()]) != -1) {
         console.log(event);
       }
-      /////////////////*/
+    }*/
   }
 
   /*function getEventsFor(rooms, date) {
@@ -437,26 +477,24 @@ $(document).ready(function(){
 });
 
 //////////////////////////////////////PROTOTYPE MODIFICATIONS/////////////////////////////
-if (!Array.prototype.last) {
-  Array.prototype.last = function() {
-    if (this[this.length-1]) {
-      return this[this.length-1];
+
+Array.prototype.itemAt = Array.prototype.itemAt || function(index) {
+  if (index < 0) {
+    if (this[this.length+index]) {
+      return this[this.length+index];        
     } else {
-      return this[0];
+      return this[this.length-1]
     }
+  } else {
+    return this[index];
   }
 }
 
-if (!Array.prototype.itemAt) {
-  Array.prototype.itemAt = function(index) {
-    if (index < 0) {
-      if (this[this.length+index]) {
-        return this[this.length+index];        
-      } else {
-        return this[this.length-1]
-      }
-    } else {
-      return this[index];
-    }
+Date.prototype.setDay = Date.prototype.setDay || function (dayIndex) {
+  dayIndex = Math.floor(+dayIndex);
+  if (dayIndex < 0 || 6 < dayIndex) {
+    throw new Error("Must pass integer between 0-6, where sunday is 0.");
   }
-}
+  this.setDate( this.getDate() + dayIndex - this.getDay() );
+  return this.valueOf();
+};

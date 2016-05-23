@@ -7,10 +7,37 @@ module.exports = {};
 
 var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-module.exports.getRoomEvents = co.wrap(function*(room, date, token) {
+module.exports.getWeekEvents = co.wrap(function*(room, date, token) {
+  var saturday = new Date(new Date(date).setDate(new Date(new Date(date).getDate() + 5 - new Date(date).getDay()))).toISOString().substring(0,10);
   var events = [];
-  var response = yield request('http://scheduler.hlrdev.byu.edu/rooms/'+room+'/events?token='+token+'&date='+date+'&token='+token+'&format=json');
-  console.log(response);
+  var response = yield request('http://scheduler.hlrdev.byu.edu/rooms/'+room+'/events?token='+token+'&date='+date+'&end='+saturday+'&format=json');
+  var allEvents = JSON.parse(response.body);
+
+  for (var i = 0; i < allEvents.length; i++) {
+    var alreadyExists = false;
+    for (var j = 0; j < events.length; j++ ) {
+      if (allEvents[i]['id'] == events[j]['id']) {
+        alreadyExists = true;
+        break;
+      }
+    }
+    if (!alreadyExists) {
+      events.push(allEvents[i]);
+    }
+  }
+  /* OR
+  loop1:
+  for (var i = 0; i < allEvents.length; i++) {
+  loop2:
+    for (var j = 0; j < events.length; j++ ) {
+      if (allEvents[i]['id'] == events[j]['id']) {
+        continue loop1;
+      }
+    }
+    events.push(allEvents[i]);
+  }
+  */
+  return events;
 });
 
 module.exports.getAllEvents = co.wrap(function*(date, rooms, token) {

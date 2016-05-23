@@ -2,15 +2,15 @@ var cal = require('../app_modules/cal');
 
 module.exports = function(socket, app) {
 
-  socket.on('get room events', function(obj) {
-    cal.getRoomEvents(obj.room, obj.date, obj.token).then(function(events) {
-      app.io.emit('get room events', events);
+  socket.on('get week events', function(obj) {
+    cal.getWeekEvents(obj.room, obj.date, obj.token).then(function(events) {
+      app.io.emit('get week events', events);
     });
   });
 
-  socket.on('get all events', function(obj) {
+  socket.on('get day events', function(obj) {
     cal.getAllEvents(obj.date, obj.rooms, obj.token).then(function(events) {
-      app.io.emit('get room events', events);
+      app.io.emit('get day events', events);
     });
   });
   
