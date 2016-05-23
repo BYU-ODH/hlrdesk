@@ -18,8 +18,9 @@ psql -c "select addcol('public','users', 'last_login', 'timestamp', 'current_tim
 psql -c "select addcol('public','media', 'fine_amount', 'real', '0.50');"
 psql -c "select addcol('public','media', 'code', 'varchar(2)', null);"
 psql -c "select addcol('public','inventory', 'icn', 'varchar(16)', null);"
-psql -c "create table locations(name varchar(32));"
-psql -c "alter table inventory add location varchar(32) references locations;"
+psql -c "create table IF NOT EXISTS locations(name varchar(32));"
+psql -c "select addcol('public','inventory','location','varchar(32) references locations', null);"
+# psql -c "alter table inventory add location varchar(32) references locations;"
 
 tput setaf 6
 echo "Database Migrations Added"
