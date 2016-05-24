@@ -294,16 +294,16 @@ Object.defineProperty(inventory, 'checked_out', {
                 'c.extensions, i.notes,i.title as name, i.call, ' +
                 '( SELECT array_agg(l.name) as languages FROM languages l ' +
                 'JOIN languages_items li ON li.language_code = l.code AND ' +
-                'li.inventory_call = i.call ), ' +
+                'li.inventory_call = i.call ) as languages, ' +
                 '( SELECT array_agg(m.code) as media FROM media m ' +
                 'JOIN media_items mi ON mi.medium = m.medium AND ' +
-                'mi.call = i.call ), ' +
+                'mi.call = i.call ) as media, ' +
                 '( SELECT array_agg(m.medium) as media_type FROM media m ' +
                 'JOIN media_items mi ON mi.medium = m.medium AND ' +
-                'mi.call = i.call ), ' +
+                'mi.call = i.call ) as media_type, ' +
                 '( SELECT array_agg(m.fine_amount) as fine FROM media m ' +
                 'JOIN media_items mi ON mi.medium = m.medium AND ' +
-                'mi.call = i.call ) ' +
+                'mi.call = i.call ) as fine ' +
                 'FROM checked_out c JOIN inventory i ON c.call = i.call;';
 
     var results = (yield client.query(query)).rows;
