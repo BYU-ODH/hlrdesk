@@ -1,0 +1,9 @@
+html {
+  text-align: center;
+}
+.img-holder {
+  display: block;
+}
+.img-holder img {
+  max-width: 400px;
+}

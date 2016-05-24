@@ -1,0 +1,81 @@
+sudo: false
+language: node_js
+env:
+- BOTO_CONFIG=~/.boto
+git:
+  depth: 18 # arbitrarily set, but lower than the default of 50
+node_js:
+- '0.12'
+services:
+  - redis-server
+cache:
+  directories:
+  - node_modules
+before_install:
+- psql -c 'DROP DATABASE IF EXISTS travis;' -U postgres
+- psql -c 'CREATE DATABASE travis;' -U postgres
+- cat core/db/*.sql | psql
+# needed for istanbul coverage reports, but istanbul isn't working
+#- npm install -g codeclimate-test-reporter
+
+# reqs for SlimerJS
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
+
+# reqs. for publishing images to Google Cloud Storage
+- pip install --user gsutil
+- cp .travis/.boto ~/.boto
+- echo "[Credentials]" >> ~/.boto
+- echo "gs_oauth2_refresh_token = $gs_oauth2_refresh_token" >> ~/.boto
+
+after_success: >
+
+ BR=$TRAVIS_BRANCH;
+ PR=$TRAVIS_PULL_REQUEST;
+
+ if [ "$PR" == "false" ] && ( [ "$BR" == "master" ] || [ "$BR" == "staging" ] || [ -n "$TRAVIS_TAG" ] ); then
+
+    openssl aes-256-cbc -K $encrypted_430fe3a451cb_key -iv $encrypted_430fe3a451cb_iv -in .travis/travis_hlrdesk.enc -out ~/.ssh/id_rsa -d;
+    chmod 600 ~/.ssh/id_rsa;
+
+    git config --global user.email "travis@example.com";
+    git config --global user.name "Travis CI Server";
+
+    # see addons: ssh_known_hosts: ... in Travis-CI docs
+    hosts="hlrdev.byu.edu hlrdesk.hlrdev.byu.edu hlrdesk-staging.byu.edu hlrdesk-prod.byu.edu";
+    for i in $hosts; do ssh-keyscan -t rsa,dsa -H $i 2>&1 | tee -a $HOME/.ssh/known_hosts; done
+
+    if [ "$TRAVIS_BRANCH" == "master" ]; then
+      npm run deploy dev;
+      #codeclimate < coverage/lcov.info
+    elif [ "$TRAVIS_BRANCH" == "staging" ]; then
+      npm run deploy staging;
+    elif [ -n "TRAVIS_TAG" ]; then
+      npm run deploy production;
+    fi
+  fi
+
+notifications:
+  slack: hlrdev:GKTfYhesUBgIPeCNYx2qrKPP
+
+# will be run regardless of success or failure
+after_script:
+  - export PATH=$PATH:~/.local/bin/ # gsutil is installed using pip install --user, so it's local
+  # upload screenshots to Google Cloud Storage
+  - gsutil cp -a public-read tests/screenshots/* "gs://byu-hlr-screenshots/$TRAVIS_BUILD_NUMBER-$TRAVIS_BRANCH-`git log --pretty=format:\"%s (%cn)\" | head -n 1`/"
+  - ./.gen-gh-pages.sh
+  # publish pages
+  - git checkout --orphan gh-pages
+  - rm -rf `find ./* -not -path "./gh-pages/*" -not -name "gh-pages" -not -path "./.git/*" -not -name ".git" -not -path "./.travis"`
+  - mv ./gh-pages/* .
+  - rmdir gh-pages
+  - git config --global user.email "travis@travis-ci.org"
+  - git config --global user.name "travis-ci"
+  - git add -A -f
+  - git commit -m "Travis build $TRAVIS_BUILD_NUMBER"
+  - git push -f --quiet "https://webnard:${GH_TOKEN}@github.com/byu-odh/hlrdesk" gh-pages:gh-pages > /dev/null 2>&1
+  - echo "See build screenshots on https://byu-odh.github.io/hlrdesk"
+
+
+addons:
+  postgresql: "9.3"

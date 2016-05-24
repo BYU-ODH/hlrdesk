@@ -1,0 +1,17 @@
+node_modules
+coverage
+*.swp
+npm-debug.log
+*.css
+*.css.map
+.sass-cache
+.dump.sql
+nohup.out
+tests/logs/
+tests/screenshots/
+gh-pages/
+core/sass/patternLibrary.scss
+core/sass/colors.scss
+core/sass/_patternLibrary.scss
+core/sass/_colors.scss
+public/js/lib/patternLibrary.js
