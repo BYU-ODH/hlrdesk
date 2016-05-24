@@ -192,6 +192,12 @@ CREATE TABLE checked_out (
     CONSTRAINT checked_out_call_fkey FOREIGN KEY (call) REFERENCES inventory(call)
 );
 
+CREATE TABLE newsbox (
+  news_id serial PRIMARY KEY,
+  heading character varying(250) NOT NULL,
+  body character varying(1000) NOT NULL,
+  img_link character varying(3000) NOT NULL
+);
 
 -- Completed on 2014-12-02 13:12:59 MST
 

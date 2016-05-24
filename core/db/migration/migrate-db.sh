@@ -20,7 +20,11 @@ psql -c "select addcol('public','media', 'code', 'varchar(2)', null);"
 psql -c "select addcol('public','inventory', 'icn', 'varchar(16)', null);"
 psql -c "create table IF NOT EXISTS locations(name varchar(32));"
 psql -c "select addcol('public','inventory','location','varchar(32) references locations', null);"
-# psql -c "alter table inventory add location varchar(32) references locations;"
+psql -c "CREATE TABLE IF NOT EXISTS newsbox (
+           news_id serial PRIMARY KEY,
+           heading character varying(250) NOT NULL,
+           body character varying(1000) NOT NULL,
+           img_link character varying(3000) NOT NULL);"
 
 tput setaf 6 || true
 echo "Database Migrations Added"
