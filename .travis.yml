@@ -5,7 +5,7 @@ env:
 git:
   depth: 18 # arbitrarily set, but lower than the default of 50
 node_js:
-- '0.12'
+- '5.10'
 services:
   - redis-server
 cache:
@@ -38,7 +38,7 @@ after_success: >
     openssl aes-256-cbc -K $encrypted_430fe3a451cb_key -iv $encrypted_430fe3a451cb_iv -in .travis/travis_hlrdesk.enc -out ~/.ssh/id_rsa -d;
     chmod 600 ~/.ssh/id_rsa;
 
-    git config --global user.email "travis@example.com";
+    git config --global user.email "travis@travis-ci";
     git config --global user.name "Travis CI Server";
 
     # see addons: ssh_known_hosts: ... in Travis-CI docs
@@ -50,13 +50,10 @@ after_success: >
       #codeclimate < coverage/lcov.info
     elif [ "$TRAVIS_BRANCH" == "staging" ]; then
       npm run deploy staging;
-    elif [ -n "TRAVIS_TAG" ]; then
+    elif [ -n "TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" == "production" ]; then
       npm run deploy production;
     fi
   fi
-
-notifications:
-  slack: hlrdev:GKTfYhesUBgIPeCNYx2qrKPP
 
 # will be run regardless of success or failure
 after_script:

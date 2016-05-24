@@ -4,6 +4,7 @@
 BRANCH=deploy-$1-$(echo $RANDOM | md5sum | cut -c 1-5)
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 DUMP_FILE=.dump.sql
+CURRENT_COMMIT=`git log --oneline -1`
 
 case "$1" in
   dev)
@@ -13,17 +14,13 @@ case "$1" in
     cd core/db
     ./drop-db.sh
     cat *.sql | psql $DEVELOPMENT_POSTGRES_URI $DB
-    # TODO add migrations here, but then once verified add the alterations to the sql files
-    echo "Inserting migrations"
     cd -
     ;;
   staging)
-    # TODO: handle schema migrations
     REMOTE=hlrdesk-staging.byu.edu
     APP=hlrdesk-staging
     ;;
   production)
-    # TODO: handle schema migrations
     REMOTE=hlrdesk-prod.byu.edu
     APP=hlrdesk
     ;;
@@ -46,7 +43,7 @@ trap restore EXIT
 
 npm run compile-sass
 git add -f public/css/*
-git commit -m "$1"
+git commit -m "$1: $CURRENT_COMMIT"
 git push dokku@$REMOTE:$APP $BRANCH:master -f
 
 if [[ "$1" == "production" ]]; then

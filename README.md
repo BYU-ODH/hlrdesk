@@ -90,7 +90,11 @@ Run `npm test` to run the tests.
 Deployment to our servers can be done using one of the following commands and
 should typically only take place through Travis.
 
-**This is done when a passing master branch is given a tag.**
+Travis will deploy under these conditions, so long as the build passes.
+
+1. **Commits** on **master** are deployed to **hlrdesk.hlrdev.byu.edu**
+2. **Commits** on **staging** are deployed to **hlrdesk-staging.byu.edu**
+3. **Tags** on **production** are deployed to **hlrdesk.byu.edu**
 
 ```bash
 
