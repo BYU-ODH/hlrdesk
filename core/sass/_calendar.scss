@@ -21,6 +21,7 @@
 		height: 97%;
 		td
 		{
+			color: $mainBlue;
 			-webket-user-select: none;
 			border-collapse: collapse;
 			border: 1px solid $mainBlue;
@@ -65,19 +66,6 @@
 		background: $mainBlueHL;
 	}
 
-	.booked
-	{
-		background: $disabledGrey;
-		color: $mainBlue;
-		border-top: 0px solid $mainBlue;
-		border-bottom: 0px solid $mainBlue;
-	}
-
-	.disabled
-	{
-		background-image: linear-gradient(rgba(202, 201, 201, 0.66), rgba(202, 201, 201, 0.66)); //hacky way to tint cells
-	}
-
 	.top
 	{
 		border-top: 1px solid $mainBlue;
@@ -87,6 +75,21 @@
 	{
 		border-bottom: 1px solid $mainBlue;		
 	}
+
+	.disabled
+	{
+		background-image: linear-gradient(rgba(202, 201, 201, 0.7), rgba(202, 201, 201, 0.7)); //hacky way to tint cells
+		color: $mainGrey;
+		border: 1px solid $mainGrey;
+	}
+
+	.booked
+	{
+		background: $disabledGrey;
+		border-top: 0px solid $mainBlue;
+		border-bottom: 0px solid $mainBlue;
+	}
+
 
 	.hover
 	{

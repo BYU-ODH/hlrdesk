@@ -78,9 +78,9 @@
               <td class='left'></td><td class='right'><%= studyRooms[i].directions %></td>
             </tr><tr>
               <td class='left'>Amenities:</td><td class='right'> <%= studyRooms[i].amenities %></td>
-            </tr><tr>
+            </tr><!--<tr>
               <td class='left'>ID:</td><td class='right'> <%= studyRooms[i].id %></td>
-            </tr>
+            </tr>-->
           </table>
         </div>
       <% } %>
@@ -206,6 +206,12 @@
       <button id='saveEvent' class='greenBtn'>Save</button><button id='cancel' class='redBtn'>Cancel</button>
     </div>
 
+    <div id='editError' class='window' style='display:none; left:40%; top:40%;'>
+      <header>Can't Edit</header>
+      <p>Sorry, but this event is not editable.</p>
+      <p>Please contact your supervisor if you wish to make changes.</p>
+      <button id='closeErrorWindow' class='redBtn'>Close</button>
+    </div>
 
   </section>
 

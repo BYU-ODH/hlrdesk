@@ -21,22 +21,11 @@ module.exports.getWeekEvents = co.wrap(function*(room, date, token) {
         break;
       }
     }
-    if (!alreadyExists) {
+    //if (!alreadyExists) {
+    if (!alreadyExists && (allEvents[i]['room'] == room['id'] || allEvents[i]['room'] == -2 || allEvents[i]['room'] == 0 || allEvents[i]['room'] == -1)) {
       events.push(allEvents[i]);
     }
   }
-  /* OR
-  loop1:
-  for (var i = 0; i < allEvents.length; i++) {
-  loop2:
-    for (var j = 0; j < events.length; j++ ) {
-      if (allEvents[i]['id'] == events[j]['id']) {
-        continue loop1;
-      }
-    }
-    events.push(allEvents[i]);
-  }
-  */
   return events;
 });
 

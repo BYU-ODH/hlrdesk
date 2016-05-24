@@ -17,8 +17,8 @@ $(document).ready(function(){
   $('#dateSelector').on('change', function() {
     var selectedDate = new Date($(this).val()).setHours(24);
     if (selectedDate < new Date().setHours(0,0,0,0)) { //disables ability to select previous days by forcing current day
-      //$(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
-      //selectedDate = new Date().setHours(0,0,0,0);
+      $(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
+      selectedDate = new Date().setHours(0,0,0,0);
     } else if (new Date(selectedDate).getDay() === 0) { //disables ability to select sundays by forcing the following monday
       $(this).val(new Date(selectedDate + 86400000).toISOString().substring(0,10));
       selectedDate = new Date($(this).val()).setHours(24);
@@ -94,8 +94,11 @@ $(document).ready(function(){
           selectedCells.push($(this));
           currentlySelecting = true;
         } else {
-          //displayEditor($(this));
-          selectedCells = $(this).data('eventCells');
+          currentlySelecting = true;
+          var highlightedCells = $('td.hover');
+          for (var i = 0; i < highlightedCells.length; i++) {
+            selectedCells.push($('#'+highlightedCells[i].id.replace('.','\\.')));
+          }
           displayWindow();
         }
       }
@@ -190,6 +193,15 @@ $(document).ready(function(){
           break;
         }
       }
+      if (Number(cellEvent['room']) <= 0) {
+        $('.window').hide();
+        $('#editError').show();
+        $('#closeErrorWindow').click(function() {
+          selectedCells.length = 0;
+          clearSelection();
+          return;
+        });
+      }
       $('#eventName').val(cellEvent.name);
     } else {
       var editing = false;
@@ -205,7 +217,7 @@ $(document).ready(function(){
     $('#eventTime > option').each(function() {
       $(this).removeAttr('disabled');
       var c = $('#'+cellColumn+'-'+$(this).val().replace('.','\\.'));
-      if (c.hasClass('booked') && c.data('event') !== selectedCells.itemAt(0).data('event')) {
+      if ((c.hasClass('booked') && c.data('event') !== selectedCells.itemAt(0).data('event')) || c.hasClass('disabled')) {
         $(this).attr('disabled', 'disabled');
       }
     });
@@ -272,7 +284,7 @@ $(document).ready(function(){
       for (var i = 0; i < cellsInColumn.length; i++) {
         cellToBeAdded = $('#'+cellsInColumn[i].id.replace('.','\\.'));
         if (cellToBeAdded.data('time') >= firstCell.data('time') && cellToBeAdded.data('time') < firstCell.data('time')+(duration||22)) {
-          if (!cellToBeAdded.hasClass('booked') || cellToBeAdded.data('event') == selectedEvent) {//firstCell.data('event')) {
+          if (!cellToBeAdded.hasClass('booked') || cellToBeAdded.data('event') == selectedEvent) {
             newSelection.push(cellToBeAdded);
           } else {
             break;
@@ -306,7 +318,7 @@ $(document).ready(function(){
   function clearSelection() {
     $('td').removeClass('hover');
     $('th').removeClass('hover');
-    $('.window').hide();;
+    $('.window').hide();
     uncloak();
     $('#roomsSelector').prop('disabled', false);
     $('#eventTime').off('change');
@@ -341,12 +353,10 @@ $(document).ready(function(){
     .on('mousemove', handle_dragging);
   }
 
-  function highlightEvent(cell) { //TODO: Not highlighting
+  function highlightEvent(cell) {
     if (!currentlySelecting) {
-      var sharedEventCells = cell.data('eventCells');
-      for (var i = 0; i < sharedEventCells.length; i++) {
-        sharedEventCells[i].toggleClass('hover')
-      }
+      var cellColumnData = cell.data('room') ? '[data-room="'+cell.data('room')+'"]' : '[data-day="'+cell.data('day')+'"]';
+      $('[data-event='+cell.data('event')+']'+cellColumnData).addClass('hover');
     } else {
       selectedCells.length = 0;
       clearSelection();
@@ -383,10 +393,12 @@ $(document).ready(function(){
   }
 
   socket.on('get day events', function(events) {
+    currentEvents = events;
     placeDayEvents(events);
   });
 
   socket.on('get week events', function(events) {
+    currentEvents = events;
     placeWeekEvents(events);
   });
 
@@ -401,33 +413,43 @@ $(document).ready(function(){
       
       if (event.room == 0 || event.room == -2) {
         var cell = $('[data-time="'+eventStart+'"]').addClass('booked');
-        cell.addClass('top')
+        cell.text(event.name);
+        cell.addClass('top');
         for (var j = eventStart; j < eventEnd; j+=0.5) {
-          $('[data-time="'+j+'"]').addClass('booked');
+          cell = $('[data-time="'+j+'"]');
+          cell.addClass('booked');
+          cell.attr('data-event', event['id']);
           if (j == eventEnd - 0.5) {
-            $('[data-time="'+j+'"]').addClass('bottom');
+            cell.addClass('bottom');
           }
         }
       } else {
         var cell = $('#'+eventRoom +'-'+ eventStart);
+        cell.text(event.name);
         cell.addClass('top')
         for (var j = eventStart; j < eventEnd; j+=0.5) {
-          $('#'+eventRoom +'-'+ String(j).replace('.','\\.')).addClass('booked');
+          cell = $('#'+eventRoom +'-'+ String(j).replace('.','\\.'));
+          cell.addClass('booked');
+          cell.attr('data-event', event['id']);
           if (j == eventEnd - 0.5) {
-            $('#'+eventRoom +'-'+ String(j).replace('.','\\.')).addClass('bottom');
+            cell.addClass('bottom');
           }
         }
-        cell.addClass('booked');
       }
-
-      cell.text(event.name);
     
     }
+    $('td.booked:not(.disabled)').mouseover(function() {
+      highlightEvent($(this));
+    });
+    $('td.booked:not(.disabled)').mouseleave(function() {
+      if (!currentlySelecting) {
+        $('.hover').removeClass('hover')
+      }
+    });
     uncloak();
   }
 
   function placeWeekEvents(events) { //TODO: Displays all events
-    console.log(events);
     for (var i = 0; i < events.length; i++) {
       var event = events[i];
       eventStart = Number(event['start_time'].substring(event['start_time'][0]==='0' ? 1:0,2) + ((event['start_time'][3]=='3')?'.5':''));
@@ -436,44 +458,29 @@ $(document).ready(function(){
       
       for (var j = 0; j < eventDays.length; j++) {
         var cell = $('#'+eventDays[j].toLowerCase() +'-'+ eventStart);
-        cell.addClass('booked');
+        cell.text(event.name);
         cell.addClass('top');
         for (var k = eventStart; k < eventEnd; k+=0.5) {
-          $('#'+eventDays[j].toLowerCase() +'-'+ String(k).replace('.','\\.')).addClass('booked');
-          if (j == eventEnd - 0.5) {
-            $('#'+eventDays[j].toLowerCase() +'-'+ String(k).replace('.','\\.')).addClass('bottom');
+          cell = $('#'+eventDays[j].toLowerCase() +'-'+ String(k).replace('.','\\.'))
+          cell.addClass('booked');
+          cell.attr('data-event', event['id']);
+          if (k == eventEnd - 0.5) {
+            cell.addClass('bottom');
           }
         }
-        cell.text(event.name);
       }
     
     }
+    $('td.booked:not(.disabled)').mouseover(function() {
+      highlightEvent($(this));
+    });
+    $('td.booked:not(.disabled)').mouseleave(function() {
+      if (!currentlySelecting) {
+        $('.hover').removeClass('hover')
+      }
+    });
     uncloak();
-    /*var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    for (var i = 0; i < events.length; i++) {
-      var eventDays = event.days_of_week.split(',')
-      if (eventDays.indexOf(days[new Date(new Date(displayedDate).setHours(24)).getDay()]) != -1) {
-        console.log(event);
-      }
-    }*/
   }
-
-  /*function getEventsFor(rooms, date) {
-    cloak('Loading...');
-    socket.emit('get events', {'user':window.user, 'rooms':rooms, 'date':date, 'token':'ABC123'});
-    console.log('request made')
-    console.log(rooms)
-    console.log(date)
-  }
-  socket.on('get events', function(events) {
-    console.log('request fulfilled')
-    for (var i = 0; i < events.length; i++) {
-      if ('name' in events[i] && events[i].start_time != "21:00:00") {
-        currentEvents.push(events[i]);
-      }
-    }
-    placeEvents(currentEvents);
-  });*/
 });
 
 //////////////////////////////////////PROTOTYPE MODIFICATIONS/////////////////////////////
