@@ -77,4 +77,4 @@ after_script:
 
 
 addons:
-  postgresql: "9.3"
+  postgresql: "9.3" # we should be using 9.1, but it doesn't work with our test runner
