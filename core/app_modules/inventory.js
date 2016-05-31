@@ -51,7 +51,7 @@ inventory.search = co.wrap(function* (text, language, media, username, params) {
 
   // NOTE: the percent signs need to be concatenated for the $1 replacement to work
   var query = 'SELECT '+
-    ' inv."call" as "call_number", inv."title", inv."quantity",' +
+    ' inv."call" as "call_number", inv."title", inv."quantity", inv."location",' +
     '   array_agg(foo.copies_available) as copies_available' +
     ' FROM "inventory" as inv ' +
     ' LEFT JOIN ( SELECT copies_available, subq.call FROM ' +
@@ -93,7 +93,8 @@ var upsert = co.wrap(function*(call, user, details, update) {
       'is_reserve',
       'is_duplicatable',
       'on_hummedia',
-      'notes'
+      'notes',
+      'location'
     ];
 
     var ignore = [

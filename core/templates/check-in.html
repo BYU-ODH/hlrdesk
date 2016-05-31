@@ -36,7 +36,7 @@
 
         <%if (item.media !== null) {%> <td title='<%= item.media_type %>' ><%= item.media %></td> <% } else { %> <td></td> <% } %>
         <td><%= item.call_number %></td>
-        <td><%= item.name %></td>
+        <td title='Location: <%= item.location %>'><%= item.name %></td>
         <td><%= item.owner %></td>
         <td><%= user[item.owner].name %></td>
         <td>

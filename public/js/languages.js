@@ -107,9 +107,9 @@ window.HLRDESK.init.languages = function initLanguages() {
     opt.dataset.name = data.newName;
     opt.dataset.code = data.newCode;
     opt.value = data.newName + ' [' + data.newCode + ']';
-    opt.text = data.newName + ' [' + data.newcode + ']';
-    $("#lang-search").append(opt);
+    opt.text = data.newName + ' [' + opt.dataset.code + ']';
     $("#lang-search option[data-code='" + data.oldCode +"']").remove();
+    $("#lang-search").append(opt);
     resetForms();
     setEditFormDisabled(false);
   }

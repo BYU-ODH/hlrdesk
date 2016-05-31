@@ -119,6 +119,9 @@ ALTER TABLE ONLY messages
 --
 -- Name: inventory; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
+CREATE TABLE locations (
+  name character varying(32) NOT NULL PRIMARY KEY
+);
 
 CREATE TABLE inventory (
   call character varying(32) NOT NULL,
@@ -133,6 +136,7 @@ CREATE TABLE inventory (
   edited_by character varying(8),
   date_edited timestamp,
   notes character varying(255),
+  location character varying(32) references locations,
   CONSTRAINT inventory_pkey PRIMARY KEY (call)
 );
 

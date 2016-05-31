@@ -96,6 +96,7 @@ window.HLRDESK.plugins.search = function(parameters) {
     li.setAttribute('data-call', item.call_number);
     li.setAttribute('data-title', item.title);
     li.setAttribute('data-copy', copy);
+    li.setAttribute('data-location', item.location);
 
     if(typeof parameters.clickCallback === 'function') {
       li.addEventListener('click', parameters.clickCallback.bind(li));

@@ -1,0 +1,31 @@
+<section id=locations>
+  <h1>Locations</h1>
+  <select id="loc-search" style="width: 75%">
+    <option value="" disabled selected>Select a Language...</option>
+    <% locations.forEach(function(loc) { %>
+      <option data-name="<%= loc.name %>" value="<%= loc.name %>"><%= loc.name %></option>
+    <% }); %>
+  </select>
+  <form id=loc-edit>
+    <fieldset>
+      <legend>Edit Location</legend>
+      <div class=field-holder>
+        <label for=loc-name-edit>Name</label>
+        <input type=text name=locName id=loc-name-edit required placeholder="Back Cabinet">
+      </div>
+      <input id=loc-delete-btn type=submit class=redBtn value='Delete'>
+      <input id=loc-update-btn type=submit class=greenBtn value='Update'>
+    </fieldset>
+  </form>
+  <form id=loc-add>
+    <fieldset>
+      <h3><legend>Add Locations</legend></h3>
+      <div class=field-holder>
+        <label for=loc-name>Name</label>
+        <input type=text name=locName id=loc-name required placeholder="Back Cabinet">
+      </div>
+      <input type=submit class=greenBtn value=Add>
+    </fieldset>
+  </form>
+</section>
+<script>window.HLRDESK.init.locations();</script>

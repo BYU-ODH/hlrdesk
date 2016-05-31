@@ -112,3 +112,7 @@ INSERT INTO media_items(call, medium) VALUES
 
 INSERT INTO languages_items(inventory_call, language_code) VALUES
   ('HELLO', 'eng');
+
+INSERT INTO locations(name) VALUES
+  ('Back Cabinet'),
+  ('Reserve Drawer');
