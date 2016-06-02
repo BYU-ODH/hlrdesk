@@ -35,9 +35,6 @@ after_success: >
 
  if [ "$PR" == "false" ] && ( [ "$BR" == "master" ] || [ "$BR" == "staging" ] || [ -n "$TRAVIS_TAG" ] ); then
 
-    openssl aes-256-cbc -K $encrypted_430fe3a451cb_key -iv $encrypted_430fe3a451cb_iv -in .travis/travis_hlrdesk.enc -out ~/.ssh/id_rsa -d;
-    chmod 600 ~/.ssh/id_rsa;
-
     git config --global user.email "travis@travis-ci";
     git config --global user.name "Travis CI Server";
 
