@@ -42,6 +42,8 @@ after_success: >
     hosts="hlrdev.byu.edu hlrdesk.hlrdev.byu.edu hlrdesk-staging.byu.edu hlrdesk-prod.byu.edu";
     for i in $hosts; do ssh-keyscan -t rsa,dsa -H $i 2>&1 | tee -a $HOME/.ssh/known_hosts; done
 
+    # Dokku can't currently handle receiving a shallow clone
+    git pull --unshallow
     if [ "$TRAVIS_BRANCH" == "master" ]; then
       npm run deploy dev;
       #codeclimate < coverage/lcov.info
