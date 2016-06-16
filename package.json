@@ -11,6 +11,7 @@
     "cookie": "^0.1.2",
     "ejs": "^2.3.1",
     "extend": "^2.0.1",
+    "json2csv": "^3.3.0",
     "koa": "^0.16.0",
     "koa-csrf": "^2.1.3",
     "koa-ejs": "^1.1.2",
@@ -25,6 +26,7 @@
     "nodemailer": "1.3.0",
     "pg": "^4.2.0",
     "postgres-gen": "^0.6.0",
+    "rss": "^1.2.1",
     "smtp-server": "^1.4.0",
     "socket.io": "^1.2.1",
     "thunkify": "^2.1.2"
@@ -37,20 +39,20 @@
     "is-generator": "^1.0.0",
     "jscs": "1.8.X",
     "mocha": "^1.20.1",
-    "node-sass": "^0.9.6",
+    "node-sass": "^3.4.2",
     "prom-spawn": "0.2.X",
     "slimerjs": "^0.9.6-2",
     "socket.io-client": "^1.3.5",
     "supertest": "^0.15.0"
   },
   "engines": {
-    "node": "0.12.x"
+    "node": "5.10.x"
   },
   "scripts": {
     "pretest": "$(npm root)/jscs/bin/jscs core --esnext --config=./.jscs.json",
     "test": "./.run-tests.sh",
     "server": "node --harmony core/runserver.js",
-    "start": "(export $(./.env.sh) && npm run server)",
+    "start": "(export $(./.env.sh) && npm run server )",
     "cool-server": "nodemon --harmony core/runserver.js",
     "cool-start": "(export $(./.env.sh) && npm run cool-server)",
     "email-reminder": "(export $(./.env.sh) && node --harmony  bin/send-reminder-emails.js --reminder)",

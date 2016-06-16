@@ -119,9 +119,13 @@ ALTER TABLE ONLY messages
 --
 -- Name: inventory; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
+CREATE TABLE locations (
+  name character varying(32) NOT NULL PRIMARY KEY
+);
 
 CREATE TABLE inventory (
   call character varying(32) NOT NULL,
+  icn character varying(16),
   quantity integer DEFAULT 1 NOT NULL,
   title character varying(255),
   checkout_period int default 1, --in days
@@ -132,6 +136,7 @@ CREATE TABLE inventory (
   edited_by character varying(8),
   date_edited timestamp,
   notes character varying(255),
+  location character varying(32) references locations,
   CONSTRAINT inventory_pkey PRIMARY KEY (call)
 );
 
@@ -150,7 +155,9 @@ CREATE TABLE languages (
 );
 
 CREATE TABLE media (
-  medium character varying(150) NOT NULL PRIMARY KEY
+  medium character varying(150) NOT NULL PRIMARY KEY,
+  code character varying(2),
+  fine_amount real DEFAULT 0.50
 );
 
 CREATE TABLE media_items (
@@ -185,6 +192,12 @@ CREATE TABLE checked_out (
     CONSTRAINT checked_out_call_fkey FOREIGN KEY (call) REFERENCES inventory(call)
 );
 
+CREATE TABLE newsbox (
+  news_id serial PRIMARY KEY,
+  heading character varying(250) NOT NULL,
+  body character varying(1000) NOT NULL,
+  img_link character varying(3000) NOT NULL
+);
 
 -- Completed on 2014-12-02 13:12:59 MST
 

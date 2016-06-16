@@ -10,6 +10,7 @@
   <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
   <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
   <link rel="icon" type="image/png" href="/favicon-48x48.png" sizes="48x48">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.2/css/select2.min.css" rel="stylesheet" />
 
   <script>
     window.HLRDESK = window.HLRDESK || {};
@@ -34,8 +35,11 @@
   <script type='text/javascript' src='/js/search-plugin.js'></script>
   <script type='text/javascript' src='/js/edit-catalog.js'></script>
   <script type='text/javascript' src='/js/languages.js'></script>
+  <script type='text/javascript' src='/js/locations.js'></script>
   <script type='text/javascript' src='/js/media.js'></script>
   <script type='text/javascript' src='/js/viewHistory.js'></script>
+  <script type="text/javascript" src='/js/newsbox.js'></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.2/js/select2.min.js"></script>
 
   <link rel="stylesheet" type="text/css" href="/css/main.css">
 </head>
@@ -59,6 +63,8 @@
     <a class="lpanel" href=/languages data-title="Languages" data-init=languages>Edit Languages</a>
     <a class="lpanel" href=/media data-title="Media" data-init=media>Edit Media</a>
     <a class="lpanel" href=/employees data-title="Employees" data-init=mkadmin>Edit Employees</a>
+    <a class="lpanel" href=/locations data-title="Locations" data-init=locations>Edit Locations</a>
+    <a class="lpanel" href=/newsbox data-title="NewsBox" data-init=newsbox>Edit Newsbox</a>
     <a class="lpanel" id="logout" href="/logout">Sign Out</a>
   </section>
 
@@ -80,5 +86,6 @@
   <script src="/js/admin.js"></script>
 
   <% include error-modal.html %>
+  <% include notice-modal.html %>
 </body>
 </html>

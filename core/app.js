@@ -21,12 +21,18 @@ var email = require('./app_modules/email')
 var auth = require('./app_modules/auth')
 var db = require('./app_modules/db')
 var user = require('./app_modules/user');
+var utils = require('./app_modules/utils')
 const ENV = process.env;
 const SERVICE = auth.service(ENV.HLRDESK_HOST, ENV.PORT, '/signin', !ENV.HLRDESK_DEV);
 
 if(ENV.HLRDESK_DEV) {
   app.use(require('./app_modules/koa-sassy').Sassy);
 }
+
+process.on("uncaughtException", function(err) {
+  email.serverCrash(err.message, err.stack);
+  throw err;
+});
 
 app.keys = ['TODO MAKE ME AN ENV VARIABLE', 'I SHOULD NOT BE HARDCODED', 'MY DOG HAS NO NOSE', 'HOW DOES HE SMELL?', 'AWFUL'];
 app.use(session());
@@ -37,10 +43,16 @@ if(ENV.NODE_TEST === 'true') {
   // e.g., /logmein?as=prabbit
   // see tests/sessions/* for available users
   require('./app_modules/mock-login')(app);
+  var util = require('util');
+  var log_file = fs.createWriteStream(path.join(__dirname, '/../', 'debug.log'), {flags : 'a'});
+  log_file.write(new Date() + '\n');
+  console.error = function(d) { //
+    log_file.write(util.format(d) + '\n\n');
+  };
 }
 
 app.use(function*(next){
-  const WHITELIST = ['/signin', '/logmein', '/logout'];
+  const WHITELIST = ['/signin', '/logmein', '/logout', '/rss'];
   const GREYLIST = WHITELIST.concat(['/calendar']);
   if (!this.session.user && WHITELIST.indexOf(this.request.path) === -1){
     this.session.login_redirect = this.request.path + this.request.search;
@@ -141,7 +153,9 @@ app.use(_.get('/check-in', function *() {
 app.use(_.get('/check-out', function *() {
   yield this.render('check-out', {
     title: "Check Out",
-    layout: this.USE_LAYOUT
+    layout: this.USE_LAYOUT,
+    languages: yield require('./app_modules/language').list,
+    media: yield require('./app_modules/media').list,
   });
 }));
 
@@ -149,11 +163,31 @@ app.use(_.get('/edit-catalog', function *() {
   var client = db();
   var media_types = yield client.query("SELECT * FROM media ORDER BY media ASC;");
   var lang = yield client.query("SELECT * FROM languages ORDER BY name ASC;");
+  var locations = yield client.query("SELECT * FROM locations ORDER BY name ASC;");
   yield this.render('edit-catalog', {
     title: "Edit Item",
     layout: this.USE_LAYOUT,
+    languages: yield require('./app_modules/language').list,
+    media: yield require('./app_modules/media').list,
     media_types: media_types,
-    lang: lang
+    lang: lang,
+    locations: locations
+  });
+}));
+
+app.use(_.get('/inventory.csv', function *() {
+  var that = this;
+  var json2csv = require('json2csv');
+  var client = db();
+  var all_items = yield client.query("SELECT * FROM inventory;");
+  var fields = Object.keys(all_items.rows[0]);
+  this.set({
+    'Content-Type': 'text/csv',
+    'Content-Disposition': 'attachment; filename=inventory.csv'
+  });
+  json2csv({ data: all_items.rows, fields: fields }, function(err, csv) {
+    if (err) throw err;
+    that.body = csv;
   });
 }));
 
@@ -162,6 +196,8 @@ app.use(_.get('/viewHistory', function *() {
   yield this.render('view-history', {
     title: "Item History",
     layout: this.USE_LAYOUT,
+    languages: yield require('./app_modules/language').list,
+    media: yield require('./app_modules/media').list,
   });
 }));
 
@@ -183,7 +219,11 @@ app.use(_.get("/calendar", function *(next) {
 
 app.use(_.get("/signin", function *(next){
   ticket=this.request.query.ticket;
-  var obj = yield auth.cas_login(ticket, SERVICE);
+  try {
+    var obj = yield auth.cas_login(ticket, SERVICE);
+  } catch (e){
+    this.redirect('https://cas.byu.edu/cas/login?service=' + SERVICE);
+  }
   auth.login(this, obj);
   if (yield auth.isAdmin(this.session.user)){
     this.redirect('/');
@@ -198,6 +238,13 @@ app.use(_.get("/languages", function*() {
   yield this.render('languages', {
     layout: this.USE_LAYOUT,
     languages: yield require('./app_modules/language').list
+  });
+}));
+
+app.use(_.get("/locations", function*() {
+  yield this.render('locations', {
+    layout: this.USE_LAYOUT,
+    locations: yield require('./app_modules/location').list
   });
 }));
 
@@ -247,8 +294,7 @@ app.use(_.post("/employees",function *(){
   this.assertCSRF(body.csrf);
   if (body.action == "add") {
     try {
-      var to_mk=body.user;
-      var status = yield auth.mkadmin(this.session.user, to_mk, true);
+      var status = yield auth.mkadmin(this.session.user, body, true);
       if(!status){
         this.redirect('/employees?status='+status+'&toMk='+to_mk);
       }
@@ -317,10 +363,39 @@ app.use(_.get("/employees",function *(){
   }
 }));
 
+app.use(_.get("/rss",function *(){
+  var rss = require('rss');
+  var newsbox = yield require('./app_modules/newsbox').list;
+  var feed = new rss({
+    title: 'NewsBox',
+    feed_url: utils.gen_url(ENV.HLRDESK_HOST, ENV.PORT, '/rss', !ENV.HLRDESK_DEV),
+    site_url: utils.gen_url(ENV.HLRDESK_HOST, ENV.PORT, '/', !ENV.HLRDESK_DEV)
+  });
+  newsbox.forEach(function(news, index) {
+    feed.item({
+      title:  news.heading,
+      description: news.body,
+      url: news.img_link
+    });
+  });
+  this.set('Content-Type', 'application/rss+xml');
+  this.body = feed.xml();
+}));
+
+app.use(_.get("/newsbox",function *(){
+  yield this.render('newsbox', {
+    layout: this.USE_LAYOUT,
+    newsbox: yield require('./app_modules/newsbox').list
+  });
+}));
+
 socket.start(app);
 
 socket.use(function*(next){
   this.socket.user = yield auth.getUser(this.data.token);
+  if(!this.socket.user){
+    this.socket.emit('expired token', SERVICE);
+  }
   yield next;
 });
 

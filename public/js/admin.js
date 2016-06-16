@@ -47,6 +47,12 @@
     $("#messageDisplay").show().one();
   });
 
+  socket.on('expired token', function(service){
+    window.HLRDESK.alert.error('Your session has expired. Please log in again.');
+    window.setTimeout(function(){
+      window.location.href = '/logout';
+    }, 3000);
+  });
 })();
 
 window.HLRDESK.init.messages();//not sure this is the best way to load messages sockets

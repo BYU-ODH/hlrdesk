@@ -1,7 +1,7 @@
 
 
 
-section#languages {
+section#locations {
   background-color: $creme;
   width: 100%;
   height: 100%;
@@ -15,7 +15,7 @@ section#languages {
     margin-left: 10%;
   }
 
-  form#lang-edit {
+  form#loc-edit {
     opacity: 0;
     transition: opacity linear 0.3s;
     &.active {

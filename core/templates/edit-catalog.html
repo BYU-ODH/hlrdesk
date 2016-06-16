@@ -1,9 +1,24 @@
 <section id=check-out><!--need to change this-->
   <form id=check-out-form class=check-out-form>
     <label class=check-out-main-label for=editCatalog-search>Enter an item or call number</label>
+    <select id=editCatalog-language class="check-out-language">
+      <option value="" disabled selected>Filter By Specific Language</option>
+      <option value="">All</option>
+      <% languages.forEach(function(langs) { %>
+        <option value="<%= langs.name %>"><%= langs.name %></option>
+        <% }); %>
+    </select>
+    <select id=editCatalog-media class="check-out-media">
+      <option value="" disabled selected>Filter By Specific Media</option>
+      <option value="">All</option>
+      <% media.forEach(function(medium) { %>
+        <option value="<%= medium %>"><%= medium %></option>
+        <% }); %>
+    </select>
     <input id=editCatalog-search class=check-out-search autofocus incremental name=search type=search placeholder=" The Rock - Starring Nicholas Cage, NOT THE BEES!, ERS-ELI-F14">
   </form>
   <button id=newItem class="mainBtn">Add Item</button>
+  <a href="/inventory.csv"><button id=downloadItems class="greenBtn">Download Inventory</button></a>
   <div class=check-out-inventory>
       <div id=editCatalog-search-results>
         <h2>Results</h2>
@@ -24,6 +39,10 @@
     <tr>
     <td><label for=title>Title</label></td>
      <td><input id="title" required></td>
+  </tr>
+  <tr>
+    <td><label for=icn>ICN</label></td>
+     <td><input id="icn"></td>
   </tr>
   <tr>
     <td><label for=mediaType>Media Type <br><span id=helper> (Hold ctrl for multiple)</span></label></td>
@@ -51,6 +70,15 @@
     <td><label for=checkoutLength>Checkout Period <br><span id=helper>In Days</span></label></td>
     <td><input  id="checkoutLength" type=number min=0 max=366 required ></td>
   </tr>
+  <tr>
+    <td><label for=location>Location</label></td>
+    <td>
+      <select id=location>
+      <% locations.rows.forEach(function(rows){%>
+      <option value="<%=rows.name %>"><%=rows.name %></option><%});%>
+      </select>
+    </td>
+  </tr>
     <tr>
     <td><label for=onReserve>Reserve Item</label> </td>
     <td><input type=checkbox id="onReserve"></td>
@@ -65,17 +93,17 @@
   </tr>
   <tr>
     <td><label for=dateAdded>Date Added</label></td>
-    <td><input type=date id="dateAdded" disabled=disabled></td>
+    <td><span id="dateAdded"></span></td>
   </tr>
     <tr>
     <td><label for=editedBy>Last Edited By</label></td>
-    <td><input id="editedBy" disabled=disabled></td>
+    <td><span id="editedBy"></span></td>
   </tr>
   <tr>
     <td><label for=dateEdited>Date Edited</label></td>
-    <td><input id="dateEdited" disabled=disabled></td>
+    <td><span id="dateEdited"></span></td>
   </tr>
-    <tr>
+  <tr>
     <td><label for=notes>Notes/Alert Field</label></td>
     <td><input id="notes"></td>
   </tr>

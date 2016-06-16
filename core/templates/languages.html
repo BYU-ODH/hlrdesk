@@ -1,11 +1,11 @@
 <section id=languages>
   <h1>Languages</h1>
-  <input id=lang-search list=langlist type=search placeholder='Search…'>
-  <datalist id=langlist>
-  <% languages.forEach(function(lang) { %>
-    <option data-code="<%= lang.code %>" data-name="<%= lang.name %>" value="<%= lang.name %> [<%= lang.code %>]">
-  <% }); %>
-  </datalist>
+  <select id=lang-search style='width: 75%'>
+    <option value="" disabled selected>Select a Language...</option>
+    <% languages.forEach(function(lang) { %>
+      <option data-code="<%= lang.code %>" data-name="<%= lang.name %>" value="<%= lang.name %> [<%= lang.code %>]"><%= lang.name %> [<%= lang.code %>]</option>
+      <% }); %>
+  </select>
   <form id=lang-edit>
     <fieldset>
       <legend>Edit Language</legend>

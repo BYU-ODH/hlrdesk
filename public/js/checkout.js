@@ -94,11 +94,13 @@ window.HLRDESK.init.checkout = function initCheckout() {
 
       var call  = items[i].getAttribute('data-call'),
           copy  = items[i].getAttribute('data-copy'),
-          title = items[i].getAttribute('data-title');
+          title = items[i].getAttribute('data-title'),
+          location = (items[i].getAttribute('data-location') !== 'null' ? items[i].getAttribute('data-location') : 'Unknown Location');
 
       li.querySelector('.title').textContent = title;
       li.querySelector('.call').textContent = call;
       li.querySelector('.copy').textContent = copy;
+      li.querySelector('.location').textContent = location;
 
       li.querySelector('.input-call').value = call;
       li.querySelector('.input-copy').value = copy;
@@ -188,6 +190,8 @@ window.HLRDESK.init.checkout = function initCheckout() {
   window.HLRDESK.plugins.search({
     search: '#check-out-search',
     results: '#check-out-search-results',
+    language: '#check-out-language',
+    media: '#check-out-media',
     filter: searchFilter,
     clickCallback: function() {
       if(this.dataset.unavailable) {

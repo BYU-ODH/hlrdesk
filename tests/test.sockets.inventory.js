@@ -13,7 +13,7 @@ describe('socket: inv.search', function() {
     socket.on('inv.search.results', function() {
       done();
     });
-    socket.emit('inv.search', {'text': 'HELLO', token: socket.__token});
+    socket.emit('inv.search', {'text': 'HELLO', 'language': ' AND (l.name LIKE(\'%\')OR l.name IS null) ', 'media': ' AND (m.medium LIKE(\'%\')OR m.medium IS null) ', token: socket.__token});
   });
 
   it('should respond with an array of data', function*(done) {
@@ -23,7 +23,7 @@ describe('socket: inv.search', function() {
       expect(results).to.be.an.Array;
       done();
     });
-    socket.emit('inv.search', {'text': 'HELLO', token: socket.__token});
+    socket.emit('inv.search', {'text': 'HELLO', 'language': ' AND (l.name LIKE(\'%\')OR l.name IS null) ', 'media': ' AND (m.medium LIKE(\'%\')OR m.medium IS null) ', token: socket.__token});
   });
 
   it('should give empty array of copies_available if none available', function*(done) {
@@ -34,7 +34,7 @@ describe('socket: inv.search', function() {
       expect(item.copies_available.length).to.equal(0);
       done();
     });
-    socket.emit('inv.search', {'text': 'CAS74WY', token: socket.__token});
+    socket.emit('inv.search', {'text': 'CAS74WY', 'language': ' AND (l.name LIKE(\'%\')OR l.name IS null) ', 'media': ' AND (m.medium LIKE(\'%\')OR m.medium IS null) ', token: socket.__token});
   });
 });
 

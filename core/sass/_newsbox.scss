@@ -1,0 +1,32 @@
+section#newsbox {
+  background-color: $creme;
+  width: 100%;
+  height: 100%;
+
+  h1 {
+    width: 90%;
+    margin: 1em auto;
+    font-size: 2em;
+  }
+  img{
+    width: 100px;
+  }
+  td{
+    vertical-align: middle;
+  }
+  textarea{
+    font-size: 1em;
+  }
+  input[type=file] {
+    width: 150px;
+  }
+  .myBtn{
+    margin-left: 0;
+  }
+  .mainBtn{
+    margin: auto 45%;
+  }
+  table{
+    width: 95%;
+  }
+}
