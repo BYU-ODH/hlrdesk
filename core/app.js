@@ -179,6 +179,25 @@ app.use(_.get("/calendar", function *(next) {
   var response = yield request('http://scheduler.hlrdev.byu.edu/rooms?token='+token+'&format=json');
   var rooms = JSON.parse(response.body);
 
+  /*var options = {
+    url: String("http://scheduler.hlrdev.byu.edu/event?token="+token+"&format=json"),
+    headers: {'content-type':'application/x-www-form-urlencoded', 'User-Agent':'request'},
+    method: 'post',
+    form: { 
+      room: '28',
+      start_date: '2016,5,20,12,30,0,2',
+      start_time: '12:30 PM',
+      end_time: '1:30 PM',
+      request_id: 'prabbit',
+      responsible_id: 'prabbit',
+      desc: 'TEST EVENT',
+      frequency: 'single'
+    }
+
+  }
+  var post = yield request(options);
+  console.log(post.body)*/
+
   var client = db();
   var isAdmin = yield auth.isAdmin(this.session.user);
   var allCalendarEvents = yield client.query('SELECT * FROM calendar;');

@@ -8,13 +8,13 @@
     <% if ('location' in rooms[i] && 'name' in rooms[i]) { %>
       <% if (rooms[i]['location'].substring(0, 5).match(/11(31|33|41)[A-E]/)) { %>
         <% studyRooms.push(rooms[i]); %>
-        window.rooms.studyRooms['<%- rooms[i].id %>'] = <%- JSON.stringify(rooms[i]) %>;
+        window.rooms.studyRooms['<%- rooms[i].name %>'] = <%- JSON.stringify(rooms[i]) %>;
       <% } else if (rooms[i]['name'] == "Foreign Lang Activity Commons" || rooms[i]['name'] == "Recording Studio") { %>
         <% specialtyRooms.push(rooms[i]); %>
-        window.rooms.specialtyRooms['<%- rooms[i].id %>'] = <%- JSON.stringify(rooms[i]) %>;
+        window.rooms.specialtyRooms['<%- rooms[i].name %>'] = <%- JSON.stringify(rooms[i]) %>;
       <% } else { %>
         <% otherRooms.push(rooms[i]); %>
-        window.rooms.otherRooms['<%- rooms[i].id %>'] = <%- JSON.stringify(rooms[i]) %>;
+        window.rooms.otherRooms['<%- rooms[i].name %>'] = <%- JSON.stringify(rooms[i]) %>;
       <% } %>
     <% } %>
   <% } %>
@@ -195,7 +195,7 @@
         <% } %>
       </select> to <span id='eventEndTime'></span></p>
       <p>For <select id='eventDurationSelect'></select> hours</p>
-      <p id='eventRoom'></p><br>
+      <p>In <span id='eventRoom'></span></p><br>
       <p>Event name: <input type='text' id='eventName'></input></p><br>
 
       <p class='creating'>Client's netid: <input type='text' id='clientNetid'></input></p>

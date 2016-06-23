@@ -7,18 +7,20 @@ $(document).ready(function(){
   var displayedDate = new Date().toISOString().substring(0, 10);
   var currentEvents = [];
   var currentView = 'multiple rooms';
+  var displayedRooms = 'studyRooms';
   var selectedCells = [];
   var currentlySelecting = false;
 
   $('#roomsSelector').on('change', function(){
     var roomTemplateIds = {'Study Rooms':'studyRooms', 'Recording Studio':'recordingStudio', 'FLAC':'flac', 'Other Rooms':'otherRooms'}
+    displayedRooms = roomTemplateIds[this.value];
     changeGridTo(roomTemplateIds[this.value], displayedDate);
   });
   $('#dateSelector').on('change', function() {
     var selectedDate = new Date($(this).val()).setHours(24);
     if (selectedDate < new Date().setHours(0,0,0,0)) { //disables ability to select previous days by forcing current day
-      $(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
-      selectedDate = new Date().setHours(0,0,0,0);
+      //$(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
+      //selectedDate = new Date().setHours(0,0,0,0);
     } else if (new Date(selectedDate).getDay() === 0) { //disables ability to select sundays by forcing the following monday
       $(this).val(new Date(selectedDate + 86400000).toISOString().substring(0,10));
       selectedDate = new Date($(this).val()).setHours(24);
@@ -165,6 +167,11 @@ $(document).ready(function(){
   function displayWindow() {
     var firstCell = selectedCells.itemAt(0);
     var cellColumn = firstCell.attr('id').substring(0, firstCell.attr('id').indexOf('-'));
+    if (currentView == 'multiple rooms') {
+      var cellRoom = firstCell.data('room');
+    } else {
+      var cellRoom = 'the ' + $('#roomsSelector').val();
+    }
     var prompt = $('#eventWindow');
     var windowLeft = (firstCell.offset().left < $('#visibleGrid').offset().left+($('#visibleGrid').outerWidth())/2) ? firstCell.offset().left + firstCell.outerWidth()*1.5 : firstCell.offset().left - (prompt.outerWidth() + firstCell.outerWidth()*0.5);
     prompt.css('left', windowLeft+'px');
@@ -177,6 +184,7 @@ $(document).ready(function(){
     }
     var duration = selectedCells.length/2;
     var startTime = Number(selectedCells.itemAt(0).data('time'));
+    var endTimeReadable;
 
     $('#eventWindow header').mousedown(function(e){
       drag(e, $(this).parent());
@@ -203,12 +211,14 @@ $(document).ready(function(){
         });
       }
       $('#eventName').val(cellEvent.name);
+      $('#eventRoom').text(cellRoom);
     } else {
       var editing = false;
       $('#eventHeader').text('Create Event');
       $('.editing').hide();
       $('.creating').show();
       $('#eventName').val('');
+      $('#eventRoom').text(cellRoom);
       $('#clientNetid').val('');
       $('#overseerNetidBox').val('');
     }
@@ -274,7 +284,7 @@ $(document).ready(function(){
         }
       }
       var endTime = Number(selectedCells.itemAt(-1).data('time')+0.5);
-      var endTimeReadable = (Math.floor(endTime<=13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
+      endTimeReadable = (Math.floor(endTime<=13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
       $('#eventEndTime').text(endTimeReadable);
     }
 
@@ -305,7 +315,39 @@ $(document).ready(function(){
     });
 
     $('#saveEvent').click(function() {
-      alert("This doesn't do anything yet!")
+      var desc = $('#eventName').val();
+      var request_id = $('#clientNetid').val();
+      if ($('#clientNetid').val() !== $('#overseerNetid').val()) {
+        var responsible_id = $('#overseerNetid').val();
+      } else {
+        var responsible_id = $('#clientNetid').val();
+      }
+      if (currentView == 'multiple rooms') {
+        var room = window.rooms[displayedRooms][cellRoom];
+        var startDate = new Date(new Date(displayedDate).setHours(24));
+        var start_date = startDate.getFullYear()+','+startDate.getMonth()+','+startDate.getDate()+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+Number(startDate.getDay()+1);
+      } else {
+        if (displayedRooms == 'recordingStudio') {
+          var room = window.rooms[13];
+        } else if (displayedRooms == 'flac') {
+          var room = window.rooms[15];
+        }
+        var dayVals = {'monday':1, 'tuesday':2, 'wednesday':3, 'thursday':4, 'friday':5, 'saturday':6};
+        var startDate = new Date(new Date(new Date(displayedDate).setHours(24)).setDay(dayVals[firstCell.data('day')]));
+        var start_date = startDate.getFullYear()+','+startDate.getMonth()+','+startDate.getDate()+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+Number(dayVals[firstCell.data('day')]+1);
+      }
+      var start_time = firstCell.data('timereadable');
+      var end_time= endTimeReadable;
+      var request_id = $('#clientNetid').val();
+      var desc = $('#eventName').val();
+      if ($('#clientIsOverseer').prop('checked')) {
+        var responsible_id = $('#overseerNetidBox').val();
+      } else {
+        var responsible_id = $('#clientNetid').val();
+      }
+      var event = {'room':room['id'], 'start_date':start_date, 'start_time':start_time, 'end_time':end_time, 'request_id':request_id, 'responsible_id':responsible_id, 'desc':desc};
+      console.log(event);
+      submitEvent(event);
     });
 
     $('#cancel').click(function() {
@@ -401,6 +443,10 @@ $(document).ready(function(){
     currentEvents = events;
     placeWeekEvents(events);
   });
+
+  function submitEvent(event) {
+    socket.emit('new event', {'event':event, 'token':'ABC123', 'view':currentView})
+  }
 
   function placeDayEvents(events) {
     for (var i = 0; i < events.length; i++) {

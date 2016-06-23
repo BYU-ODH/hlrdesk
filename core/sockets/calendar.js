@@ -14,20 +14,21 @@ module.exports = function(socket, app) {
     });
   });
   
-  /*socket.on('get events', function(eventsObj) {
-    cal.getEvents(eventsObj.rooms, eventsObj.date, eventsObj.token).then(function(events){
-      app.io.emit('get events', events);
-    });
-  });*/
-  /*socket.on('calendar event', function(event) {
-    cal.addCalendarEvent(this.user, event, event.user).then(function(events) {
-      app.io.emit("calendar event", events, event.submittedBy);
+  socket.on('new event', function(obj) {
+    /*cal.newEvent(obj.event, obj.token).then(function(events) {
+      if (events.type == 'week') {
+        app.io.emit('get week events', events.events);
+      } else if (events.type == 'day') {
+        app.io.emit('get day events', events.events);
+      }
+    });*/
+    cal.newEvent(obj.event, obj.token, obj.currentView).then(function(currentView) {
+      if (currentView == 'multiple rooms') {
+        console.log('multiple rooms')
+      } else if (currentView == 'single room') {
+        console.log('single room')
+      }
     });
   });
 
-  socket.on('delete calendar event', function(event) {
-    cal.deleteCalendarEvent(this.user, event).then(function(events) {
-      app.io.emit("calendar event", events, event.submittedBy);
-    });
-  });*/
 };
