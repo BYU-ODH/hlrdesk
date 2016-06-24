@@ -12,6 +12,9 @@ $(document).ready(function(){
   var currentlySelecting = false;
 
   $('#roomsSelector').on('change', function(){
+    if (new Date(displayedDate).setHours(24) < new Date().setHours(0,0,0,0)) {
+      displayedDate = new Date().toISOString().substring(0, 10);
+    }
     var roomTemplateIds = {'Study Rooms':'studyRooms', 'Recording Studio':'recordingStudio', 'FLAC':'flac', 'Other Rooms':'otherRooms'}
     displayedRooms = roomTemplateIds[this.value];
     changeGridTo(roomTemplateIds[this.value], displayedDate);
@@ -19,8 +22,8 @@ $(document).ready(function(){
   $('#dateSelector').on('change', function() {
     var selectedDate = new Date($(this).val()).setHours(24);
     if (selectedDate < new Date().setHours(0,0,0,0)) { //disables ability to select previous days by forcing current day
-      //$(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
-      //selectedDate = new Date().setHours(0,0,0,0);
+      $(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
+      selectedDate = new Date().setHours(0,0,0,0);
     } else if (new Date(selectedDate).getDay() === 0) { //disables ability to select sundays by forcing the following monday
       $(this).val(new Date(selectedDate + 86400000).toISOString().substring(0,10));
       selectedDate = new Date($(this).val()).setHours(24);
@@ -325,7 +328,7 @@ $(document).ready(function(){
       if (currentView == 'multiple rooms') {
         var room = window.rooms[displayedRooms][cellRoom];
         var startDate = new Date(new Date(displayedDate).setHours(24));
-        var start_date = startDate.getFullYear()+','+startDate.getMonth()+','+startDate.getDate()+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+Number(startDate.getDay()+1);
+        var start_date = startDate.getFullYear()+','+(startDate.getMonth()+1)+','+startDate.getDate()+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+Number(startDate.getDay()+1);
       } else {
         if (displayedRooms == 'recordingStudio') {
           var room = window.rooms[13];
@@ -334,7 +337,7 @@ $(document).ready(function(){
         }
         var dayVals = {'monday':1, 'tuesday':2, 'wednesday':3, 'thursday':4, 'friday':5, 'saturday':6};
         var startDate = new Date(new Date(new Date(displayedDate).setHours(24)).setDay(dayVals[firstCell.data('day')]));
-        var start_date = startDate.getFullYear()+','+startDate.getMonth()+','+startDate.getDate()+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+Number(dayVals[firstCell.data('day')]+1);
+        var start_date = startDate.getFullYear()+','+(startDate.getMonth()+1)+','+startDate.getDate()+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+Number(dayVals[firstCell.data('day')]+1);
       }
       var start_time = firstCell.data('timereadable');
       var end_time= endTimeReadable;
@@ -436,6 +439,7 @@ $(document).ready(function(){
 
   socket.on('get day events', function(events) {
     currentEvents = events;
+    console.log(currentEvents)
     placeDayEvents(events);
   });
 

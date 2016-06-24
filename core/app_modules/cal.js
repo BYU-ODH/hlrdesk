@@ -21,7 +21,6 @@ module.exports.getWeekEvents = co.wrap(function*(room, date, token) {
         break;
       }
     }
-    //if (!alreadyExists) {
     if (!alreadyExists && (allEvents[i]['room'] == room['id'] || allEvents[i]['room'] == -2 || allEvents[i]['room'] == 0 || allEvents[i]['room'] == -1)) {
       events.push(allEvents[i]);
     }
@@ -30,6 +29,11 @@ module.exports.getWeekEvents = co.wrap(function*(room, date, token) {
 });
 
 module.exports.getAllEvents = co.wrap(function*(date, rooms, token) {
+  var roomIds = [];
+  for (room in rooms) {
+    roomIds.push(rooms[room].id)
+  }
+
   var events = [];
   var response = yield request('http://scheduler.hlrdev.byu.edu/rooms/events?token='+token+'&date='+date+'&format=json');
   var allEvents = JSON.parse(response.body);
@@ -40,8 +44,7 @@ module.exports.getAllEvents = co.wrap(function*(date, rooms, token) {
 
     var eventDays = allEvents[i].days_of_week.split(',')
     if (eventDays.indexOf(days[new Date(new Date(date).setHours(24)).getDay()]) != -1) {
-
-      if (allEvents[i].room in rooms || allEvents[i].room == 0 || allEvents[i].room == -2) {
+      if (roomIds.indexOf(allEvents[i].room) != -1 || allEvents[i].room == 0 || allEvents[i].room == -2) {
         events.push(allEvents[i]);
       }
 
@@ -53,18 +56,23 @@ module.exports.getAllEvents = co.wrap(function*(date, rooms, token) {
 
 module.exports.newEvent = co.wrap(function*(event, token, currentView) {
   event.frequency = 'single';
+  event.note = 'added from web client';
+
+  var dateYear = event['start_date'].split(',')[0];
+  var dateMonth = (event['start_date'].split(',')[1].length < 2 ? '0' : '') + event['start_date'].split(',')[1];
+  var dateDate = (event['start_date'].split(',')[2].length < 2 ? '0' : '') + event['start_date'].split(',')[2];
+  var formattedDate = dateYear+dateMonth+dateDate;
+  var dateInfo = yield request('https://ws.byu.edu/rest/v1/academic/controls/controldatesws/json/asofdate/'+formattedDate+'/current_yyt')
+
+  var termCodes = {'1':'Winter', '3':'Spring', '4':'Summer', '5':'Fall'}
+
+  event.term = termCodes[JSON.parse(dateInfo.body).ControldateswsService.response.date_list[0].year_term.charAt(4)];
 
   url = String("http://scheduler.hlrdev.byu.edu/event?token="+token+"&format=JSON");
-  console.log(event);
 
   var response = yield request.post({'url':url, 'form':event}, function(err, httpResponse, body) {
-    console.log('entering callback');
-    console.log(err);
-    console.log(httpResponse);
-    //return currentView;
+    return currentView;
   });
-  //console.log(response.body)
-  //console.log(JSON.parse(response.body));
 });
 
 module.exports.editEvent = co.wrap(function*(event, token, currentView) {
