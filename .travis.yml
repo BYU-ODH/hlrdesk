@@ -33,12 +33,7 @@ after_success: >
  BR=$TRAVIS_BRANCH;
  PR=$TRAVIS_PULL_REQUEST;
 
- echo "something to echo"
- echo "$BR"
- echo "$PR"
- echo "$TRAVIS_TAG"
- echo "$TRAVIS_BRANCH"
- echo ["$TRAVIS_BRANCH" = "master"]
+ echo "something to echo BR: $BR PR: $PR TRAVIS_TAG: $TRAVIS_TAG TRAVIS_BRANCH: $TRAVIS_BRANCH Conditional: ["$TRAVIS_BRANCH" == "master"];
 
  if [ "$PR" = "false" ] && ( [ "$BR" = "master" ] || [ "$BR" = "staging" ] || [ -n "$TRAVIS_TAG" ] ); then
 
