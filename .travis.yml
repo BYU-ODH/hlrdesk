@@ -50,7 +50,7 @@ after_success: >
       #codeclimate < coverage/lcov.info
     elif [ "$TRAVIS_BRANCH" == "staging" ]; then
       npm run deploy staging;
-    elif [ -n "TRAVIS_TAG" ] && [ "$TRAVIS_BRANCH" == "production" ]; then
+    elif [ "$TRAVIS_BRANCH" == "production" ]; then
       npm run deploy production;
     fi
   fi
