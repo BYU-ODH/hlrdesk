@@ -15,20 +15,15 @@ module.exports = function(socket, app) {
   });
   
   socket.on('new event', function(obj) {
-    /*cal.newEvent(obj.event, obj.token).then(function(events) {
-      if (events.type == 'week') {
-        app.io.emit('get week events', events.events);
-      } else if (events.type == 'day') {
-        app.io.emit('get day events', events.events);
-      }
-    });*/
-    cal.newEvent(obj.event, obj.token, obj.currentView).then(function(currentView) {
-      if (currentView == 'multiple rooms') {
-        console.log('multiple rooms')
-      } else if (currentView == 'single room') {
-        console.log('single room')
-      }
+    cal.newEvent(obj.event, obj.token).then(function() {
+      app.io.emit('refresh events');
     });
   });
+
+  socket.on('delete event', function(obj) {
+    cal.deleteEvent(obj.event, obj.token).then(function() {
+      app.io.emit('refresh events');
+    })
+  })
 
 };

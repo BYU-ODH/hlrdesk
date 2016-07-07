@@ -54,7 +54,7 @@ module.exports.getAllEvents = co.wrap(function*(date, rooms, token) {
   return events;
 });
 
-module.exports.newEvent = co.wrap(function*(event, token, currentView) {
+module.exports.newEvent = co.wrap(function*(event, token) {
   event.frequency = 'single';
   event.note = 'added from web client';
 
@@ -70,11 +70,18 @@ module.exports.newEvent = co.wrap(function*(event, token, currentView) {
 
   url = String("http://scheduler.hlrdev.byu.edu/event?token="+token+"&format=JSON");
 
-  var response = yield request.post({'url':url, 'form':event}, function(err, httpResponse, body) {
-    return currentView;
-  });
+  var response = yield request.post(url, {form:event});
+
+  return;
+
 });
 
-module.exports.editEvent = co.wrap(function*(event, token, currentView) {
+module.exports.editEvent = co.wrap(function*(event, token) {
 
+});
+
+module.exports.deleteEvent = co.wrap(function*(event, token) {
+  eventId = event.id;
+  var response = yield request.del('http://scheduler.hlrdev.byu.edu/event/'+eventId+'?token='+token+'&format=json');
+  return;
 });

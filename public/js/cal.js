@@ -1,4 +1,7 @@
-﻿var socket = io();
+﻿// move events assigners out of often-called functions
+// make a clean way to clear the grid
+
+var socket = io();
 
 $(document).ready(function(){
 
@@ -55,6 +58,7 @@ $(document).ready(function(){
   }
 
   function changeGridTo(view, date) {
+    $('td').off('mouseover');
     $('#visibleGrid').html($('#'+view).html());
     if (view == 'studyRooms' || view == 'otherRooms') {
       currentView = 'multiple rooms';
@@ -74,6 +78,7 @@ $(document).ready(function(){
         var roomInfoDiv = $('#'+roomNum);
         roomInfoDiv.stop().slideUp();
       });
+      cloak('Loading...');
       getDayEventsForRooms(window.rooms[view], displayedDate);
     } else if (view == 'recordingStudio' || view == 'flac') {
       currentView = 'single room';
@@ -83,8 +88,9 @@ $(document).ready(function(){
       displayedDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10);
       populateColumnDays(displayedDate);
 
+      cloak('Loading...');
       if (view == 'recordingStudio') {
-        getRoomEventsForWeek(window.rooms[13], displayedDate)
+        getRoomEventsForWeek(window.rooms[13], displayedDate);
       } else if (view == 'flac') {
         getRoomEventsForWeek(window.rooms[15], displayedDate)
       }
@@ -120,7 +126,7 @@ $(document).ready(function(){
             selectedCells.push($(this))
             $(this).addClass('hover')
             $(this).parent().children('th').addClass('hover')
-          } else if (thisElementTime > fromElementTime + 0.5) {
+          } else if (thisElementTime > fromElementTime + 0.5) { //mouse goes backwards
             clearSelection();
             selectedCells.length = 0;
           } else {
@@ -287,7 +293,7 @@ $(document).ready(function(){
         }
       }
       var endTime = Number(selectedCells.itemAt(-1).data('time')+0.5);
-      endTimeReadable = (Math.floor(endTime<=13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
+      endTimeReadable = (Math.floor(endTime<13?endTime:endTime-12))+(endTime%1==0?':00':':30')+' '+(endTime<12?'AM':'PM');
       $('#eventEndTime').text(endTimeReadable);
     }
 
@@ -340,7 +346,7 @@ $(document).ready(function(){
         var start_date = startDate.getFullYear()+','+(startDate.getMonth()+1)+','+startDate.getDate()+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+Number(dayVals[firstCell.data('day')]+1);
       }
       var start_time = firstCell.data('timereadable');
-      var end_time= endTimeReadable;
+      var end_time = endTimeReadable;
       var request_id = $('#clientNetid').val();
       var desc = $('#eventName').val();
       if ($('#clientIsOverseer').prop('checked')) {
@@ -349,8 +355,13 @@ $(document).ready(function(){
         var responsible_id = $('#clientNetid').val();
       }
       var event = {'room':room['id'], 'start_date':start_date, 'start_time':start_time, 'end_time':end_time, 'request_id':request_id, 'responsible_id':responsible_id, 'desc':desc};
-      console.log(event);
       submitEvent(event);
+    });
+
+
+    $('#deleteEvent').off('click');
+    $('#deleteEvent').click(function() {
+      deleteEvent(cellEvent);
     });
 
     $('#cancel').click(function() {
@@ -428,18 +439,15 @@ $(document).ready(function(){
 /////////////////////////////////////////////////BACKEND/////////////////////////////////////////
 
   function getRoomEventsForWeek(room, monday) {
-    cloak('Loading...');
     socket.emit('get week events', {'user':window.user, 'room':room, 'date':monday, 'token':'ABC123'});
   }
 
   function getDayEventsForRooms(rooms, date) {
-    cloak('Loading...');
     socket.emit('get day events', {'user':window.user, 'rooms':rooms, 'date':date, 'token':'ABC123'});
   }
 
   socket.on('get day events', function(events) {
     currentEvents = events;
-    console.log(currentEvents)
     placeDayEvents(events);
   });
 
@@ -449,7 +457,31 @@ $(document).ready(function(){
   });
 
   function submitEvent(event) {
+    clearSelection();
+    selectedCells.length = 0;
+    cloak('Submitting...')
     socket.emit('new event', {'event':event, 'token':'ABC123', 'view':currentView})
+  }
+
+  socket.on('refresh events', function() {
+    clearSelection();
+    selectedCells.length = 0;
+    if (currentView == 'multiple rooms') {
+      getDayEventsForRooms(window.rooms[displayedRooms], displayedDate);
+    } else if (currentView == 'single room') {
+      var roomId = displayedRooms == 'recordingStudio' ? 13 : 15;
+      getRoomEventsForWeek(window.rooms[roomId], displayedDate);
+    }
+  });
+
+  function deleteEvent(event) {
+    cloak('Loading...');
+    var cell = $('[data-event="'+event.id+'"]');
+    cell.text('');
+    cell.removeClass();
+    cell.removeAttr('data-event');
+
+    socket.emit('delete event', {'event':event, 'token':'ABC123'});
   }
 
   function placeDayEvents(events) {
@@ -462,7 +494,7 @@ $(document).ready(function(){
       eventEnd = Number(event['end_time'].substring(0,2) + ((event['end_time'][3]=='3')?'.5':''));
       
       if (event.room == 0 || event.room == -2) {
-        var cell = $('[data-time="'+eventStart+'"]').addClass('booked');
+        var cell = $('[data-time="'+String(eventStart).replace('.','\\.')+'"]');
         cell.text(event.name);
         cell.addClass('top');
         for (var j = eventStart; j < eventEnd; j+=0.5) {
@@ -474,9 +506,9 @@ $(document).ready(function(){
           }
         }
       } else {
-        var cell = $('#'+eventRoom +'-'+ eventStart);
+        var cell = $(('#'+eventRoom +'-'+ String(eventStart).replace('.','\\.')));
         cell.text(event.name);
-        cell.addClass('top')
+        cell.addClass('top');
         for (var j = eventStart; j < eventEnd; j+=0.5) {
           cell = $('#'+eventRoom +'-'+ String(j).replace('.','\\.'));
           cell.addClass('booked');
@@ -507,7 +539,7 @@ $(document).ready(function(){
       eventDays =  event.days_of_week.split(',');
       
       for (var j = 0; j < eventDays.length; j++) {
-        var cell = $('#'+eventDays[j].toLowerCase() +'-'+ eventStart);
+        var cell = $(('#'+eventDays[j].toLowerCase() +'-'+ eventStart).replace('.','\\.'));
         cell.text(event.name);
         cell.addClass('top');
         for (var k = eventStart; k < eventEnd; k+=0.5) {

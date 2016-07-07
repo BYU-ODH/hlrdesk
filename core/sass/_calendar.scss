@@ -66,6 +66,13 @@
 		background: $mainBlueHL;
 	}
 
+	.booked
+	{
+		background: $disabledGrey;
+		border-top: 0px solid $mainBlue;
+		border-bottom: 0px solid $mainBlue;
+	}
+
 	.top
 	{
 		border-top: 1px solid $mainBlue;
@@ -80,14 +87,7 @@
 	{
 		background-image: linear-gradient(rgba(202, 201, 201, 0.7), rgba(202, 201, 201, 0.7)); //hacky way to tint cells
 		color: $mainGrey;
-		border: 1px solid $mainGrey;
-	}
-
-	.booked
-	{
-		background: $disabledGrey;
-		border-top: 0px solid $mainBlue;
-		border-bottom: 0px solid $mainBlue;
+		border-color: $mainGrey;
 	}
 
 
