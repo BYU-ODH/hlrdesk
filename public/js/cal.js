@@ -1,40 +1,42 @@
-﻿// move events assigners out of often-called functions
+// move events assigners out of often-called functions
 // make a clean way to clear the grid
 
 var socket = io();
+var displayedDate = moment();
 
-$(document).ready(function(){
+$(document).ready(function() {
 
-////////////////////////////////////////FRONTEND//////////////////////////////////////
-
-  var displayedDate = new Date().toISOString().substring(0, 10);
-  var currentEvents = [];
-  var currentView = 'multiple rooms';
-  var displayedRooms = 'studyRooms';
-  var selectedCells = [];
-  var currentlySelecting = false;
-
-  $('#roomsSelector').on('change', function(){
-    if (new Date(displayedDate).setHours(24) < new Date().setHours(0,0,0,0)) {
-      displayedDate = new Date().toISOString().substring(0, 10);
+////////////////////////////////////////EVENT LISTENERS///////////////////////////////
+  
+  $('#previousBtn').click(function() {
+    if (currentView == 'multiple rooms') {
+      previousDay();
+    } else {
+      previousWeek();
     }
-    var roomTemplateIds = {'Study Rooms':'studyRooms', 'Recording Studio':'recordingStudio', 'FLAC':'flac', 'Other Rooms':'otherRooms'}
-    displayedRooms = roomTemplateIds[this.value];
-    changeGridTo(roomTemplateIds[this.value], displayedDate);
   });
-  $('#dateSelector').on('change', function() {
-    var selectedDate = new Date($(this).val()).setHours(24);
-    if (selectedDate < new Date().setHours(0,0,0,0)) { //disables ability to select previous days by forcing current day
-      $(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
+
+  $('#nextBtn').click(function() {
+    if (currentView == 'multiple rooms') {
+      changeDate(displayedDate.add(1, 'days').calendar());
+    } else {
+      nextWeek();
+    }
+  });
+
+  function changeDate(newDate) {
+    if (selectedDate < newDate) { //disables ability to select previous days by forcing current day
+      $('#dateSelector').val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
       selectedDate = new Date().setHours(0,0,0,0);
     } else if (new Date(selectedDate).getDay() === 0) { //disables ability to select sundays by forcing the following monday
-      $(this).val(new Date(selectedDate + 86400000).toISOString().substring(0,10));
-      selectedDate = new Date($(this).val()).setHours(24);
+      $('#dateSelector').val(new Date(selectedDate + 86400000).toISOString().substring(0,10));
+      selectedDate = new Date(date).setHours(24);
     }
     if (currentView == 'multiple rooms') {
-      displayedDate = $(this).val();
+      displayedDate = date;
+      console.log(displayedDate)
       $('#roomsSelector').trigger('change', [currentView, displayedDate])
-    } else {
+    } else { //changed week
       var dayDifference = (new Date(selectedDate).getDay()-1)*86400000;
       mondayDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10); //Monday of that week
       if (displayedDate !== mondayDate) {
@@ -43,17 +45,58 @@ $(document).ready(function(){
         populateColumnDays(displayedDate);
       }
     }
+  }
+
+////////////////////////////////////////FRONTEND//////////////////////////////////////
+
+  var currentEvents = [];
+  var currentView = 'multiple rooms';
+  var displayedRooms = 'studyRooms';
+  var selectedCells = [];
+  var currentlySelecting = false;
+
+  $('#roomsSelector').on('change', function(){
+    if (displayedDate < moment()) {
+      displayedDate = moment();
+    }
+    var roomTemplateIds = {'Study Rooms':'studyRooms', 'Recording Studio':'recordingStudio', 'FLAC':'flac', 'Other Rooms':'otherRooms'}
+    displayedRooms = roomTemplateIds[this.value];
+    changeGridTo(roomTemplateIds[this.value], displayedDate);
+  });
+
+  $('#dateSelector').on('change', function() {
+    // var selectedDate = new Date($(this).val()).setHours(24);
+    // if (selectedDate < new Date().setHours(0,0,0,0)) { //disables ability to select previous days by forcing current day
+    //   $(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
+    //   selectedDate = new Date().setHours(0,0,0,0);
+    // } else if (new Date(selectedDate).getDay() === 0) { //disables ability to select sundays by forcing the following monday
+    //   $(this).val(new Date(selectedDate + 86400000).toISOString().substring(0,10));
+    //   selectedDate = new Date($(this).val()).setHours(24);
+    // }
+    // if (currentView == 'multiple rooms') {
+    //   displayedDate = $(this).val();
+    //   $('#roomsSelector').trigger('change', [currentView, displayedDate])
+    // } else { //changed week
+    //   var dayDifference = (new Date(selectedDate).getDay()-1)*86400000;
+    //   mondayDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10); //Monday of that week
+    //   if (displayedDate !== mondayDate) {
+    //     displayedDate = mondayDate;
+    //     $('#roomsSelector').trigger('change', [currentView, displayedDate]);
+    //     populateColumnDays(displayedDate);
+    //   }
+    // }
+    changeDate(moment($(this).val()));
   });
 
   function populateColumnDays(mondayDate) {
     var days = $('#daysHeader').children();
     for (var i = 1; i < days.length; i++) {
       var dateSpan = $('#'+days[i].children[0].id);
-      var dateToBeDisplayed = new Date((new Date(displayedDate).setHours(24)+((i-1)*86400000))).toDateString();
-      if (dateToBeDisplayed == new Date().toDateString()) {
+      var dateToBeDisplayed = moment(displayedDate).subtract(i, 'days').format('MMM D');
+      if (dateToBeDisplayed === moment().format('MMM D')) {
         days[i].classList.add('today')
       }
-      dateSpan.text(dateToBeDisplayed.substring(4, 10).replace(/\s0/, ' '));
+      dateSpan.text(dateToBeDisplayed);
     }
   }
 
@@ -83,9 +126,10 @@ $(document).ready(function(){
     } else if (view == 'recordingStudio' || view == 'flac') {
       currentView = 'single room';
 
-      var selectedDate = new Date($('#dateSelector').val()).setHours(24);
-      var dayDifference = (new Date(selectedDate).getDay()-1)*86400000;
-      displayedDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10);
+      //var selectedDate = new Date($('#dateSelector').val()).setHours(24);
+      //var dayDifference = (new Date(selectedDate).getDay()-1)*86400000;
+      //displayedDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10);
+      displayedDate.day(1)
       populateColumnDays(displayedDate);
 
       cloak('Loading...');
@@ -159,11 +203,12 @@ $(document).ready(function(){
     for (var i = 0; i < allCells.length; i++) {
       var cell = $('#'+allCells[i].id.replace('.', '\\.'))
       if (currentView == 'multiple rooms') {
-        if ((displayedDate == new Date().toISOString().substring(0, 10)) && (Number(cell.data('time')) <= new Date().getHours() + new Date().getMinutes()/60)) {
+        if ((displayedDate == moment()) && (cell.data('time') <= moment().format('HH') + moment.format('m')/60)) {
           cell.addClass('disabled');
         }
       } else {
         var days = {'sunday':0, 'monday':1, 'tuesday':2, 'wednesday':3, 'thursday':4, 'friday':5, 'saturday':6};
+        //TODO: continue implementing moment.js here
         if (displayedDate == new Date(new Date().setDate(new Date().getDate()-(new Date().getDay()-1))).toISOString().substring(0, 10)) { //if dispalying current week
           if ((days[cell.data('day')] < new Date().getDay()) || ((days[cell.data('day')] == new Date().getDay()) && Number(cell.data('time')) <= new Date().getHours() + new Date().getMinutes()/60)) { //if previous time
             cell.addClass('disabled');

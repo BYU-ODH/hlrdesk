@@ -34,7 +34,13 @@
         <option>FLAC</option>
         <option>Other Rooms</option>
       </select>
-      Go to <input type='date' id='dateSelector' value='<%=new Date().toISOString().substring(0, 10)%>' min='<%=new Date().toISOString().substring(0, 10)%>'></input>
+      &nbsp;
+      Go to
+      <button id='previousBtn' class='mainBtn smallBtn'>◀</button>
+      <input type='date' id='dateSelector' value='<%=new Date().toISOString().substring(0, 10)%>' min='<%=new Date().toISOString().substring(0, 10)%>'></input>
+      <button id='nextBtn' class='mainBtn smallBtn'>▶</button>
+      &nbsp;
+
     </div>
 
     <div id='visibleGrid' class='blurred'></div>
@@ -218,4 +224,5 @@
 </body>
 <!--<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>-->
 <script src="/js/jquery-2.1.4.min.js"></script>
+<script src='/js/moment.js'></script>
 <script src="/js/cal.js"></script>
