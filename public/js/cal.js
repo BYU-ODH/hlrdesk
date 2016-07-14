@@ -18,13 +18,13 @@ $(document).ready(function() {
 
   $('#nextBtn').click(function() {
     if (currentView == 'multiple rooms') {
-      changeDate(displayedDate.add(1, 'days').calendar());
+      changeDate(displayedDate.add(1, 'days'));
     } else {
       nextWeek();
     }
   });
 
-  function changeDate(newDate) {
+  /*function changeDate(newDate) {
     if (selectedDate < newDate) { //disables ability to select previous days by forcing current day
       $('#dateSelector').val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
       selectedDate = new Date().setHours(0,0,0,0);
@@ -44,8 +44,25 @@ $(document).ready(function() {
         $('#roomsSelector').trigger('change', [currentView, displayedDate]);
         populateColumnDays(displayedDate);
       }
+    }*/
+    function changeDate(newDate) {
+      while (newDate.isBefore(moment(), 'day') || newDate.format('dddd') == 'Sunday') {
+        newDate.add(1, 'days');
+      }
+      displayedDate = newDate;
+      $('#dateSelector').val(displayedDate.format('YYYY-MM-DD'));
+      if (currentView == 'multiple rooms') {
+        $('#roomsSelector').trigger('change', [currentView, displayedDate])
+      } else { //changed week
+        var dayDifference = (new Date(selectedDate).getDay()-1)*86400000; //TODO: MAKE MONDAYS WORK
+        mondayDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10); //Monday of that week
+        if (displayedDate !== mondayDate) {
+          displayedDate = mondayDate;
+          $('#roomsSelector').trigger('change', [currentView, displayedDate]);
+          populateColumnDays(displayedDate);
+        }
+      }
     }
-  }
 
 ////////////////////////////////////////FRONTEND//////////////////////////////////////
 
@@ -203,14 +220,13 @@ $(document).ready(function() {
     for (var i = 0; i < allCells.length; i++) {
       var cell = $('#'+allCells[i].id.replace('.', '\\.'))
       if (currentView == 'multiple rooms') {
-        if ((displayedDate == moment()) && (cell.data('time') <= moment().format('HH') + moment.format('m')/60)) {
+        if (displayedDate.isSame(moment(), 'day') && (cell.data('time') <= (Number(moment().format('H')) + Number(moment().format('m')/60)))) {
           cell.addClass('disabled');
         }
       } else {
         var days = {'sunday':0, 'monday':1, 'tuesday':2, 'wednesday':3, 'thursday':4, 'friday':5, 'saturday':6};
-        //TODO: continue implementing moment.js here
-        if (displayedDate == new Date(new Date().setDate(new Date().getDate()-(new Date().getDay()-1))).toISOString().substring(0, 10)) { //if dispalying current week
-          if ((days[cell.data('day')] < new Date().getDay()) || ((days[cell.data('day')] == new Date().getDay()) && Number(cell.data('time')) <= new Date().getHours() + new Date().getMinutes()/60)) { //if previous time
+        if (displayedDate.isSame(moment(), 'week')) { //if dispalying current week
+          if ((days[cell.data('day')] < moment().format('d')) || (days[cell.data('day')] == moment().format('d') && (Number(cell.data('time')) <= Number(moment().format('H'))+Number(moment().format('m')/60)))) { //if previous time
             cell.addClass('disabled');
           }
         }
@@ -378,18 +394,14 @@ $(document).ready(function() {
       }
       if (currentView == 'multiple rooms') {
         var room = window.rooms[displayedRooms][cellRoom];
-        var startDate = new Date(new Date(displayedDate).setHours(24));
-        var start_date = startDate.getFullYear()+','+(startDate.getMonth()+1)+','+startDate.getDate()+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+Number(startDate.getDay()+1);
       } else {
         if (displayedRooms == 'recordingStudio') {
           var room = window.rooms[13];
         } else if (displayedRooms == 'flac') {
           var room = window.rooms[15];
         }
-        var dayVals = {'monday':1, 'tuesday':2, 'wednesday':3, 'thursday':4, 'friday':5, 'saturday':6};
-        var startDate = new Date(new Date(new Date(displayedDate).setHours(24)).setDay(dayVals[firstCell.data('day')]));
-        var start_date = startDate.getFullYear()+','+(startDate.getMonth()+1)+','+startDate.getDate()+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+Number(dayVals[firstCell.data('day')]+1);
       }
+      var start_date = displayedDate.format('YYYY')+','+displayedDate.format('M')+','+displayedDate.format('D')+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+displayedDate.format('E');
       var start_time = firstCell.data('timereadable');
       var end_time = endTimeReadable;
       var request_id = $('#clientNetid').val();
@@ -512,10 +524,10 @@ $(document).ready(function() {
     clearSelection();
     selectedCells.length = 0;
     if (currentView == 'multiple rooms') {
-      getDayEventsForRooms(window.rooms[displayedRooms], displayedDate);
+      getDayEventsForRooms(window.rooms[displayedRooms], displayedDate.format('YYYY-MM-DD'));
     } else if (currentView == 'single room') {
       var roomId = displayedRooms == 'recordingStudio' ? 13 : 15;
-      getRoomEventsForWeek(window.rooms[roomId], displayedDate);
+      getRoomEventsForWeek(window.rooms[roomId], displayedDate.format('YYYY-MM-DD'));
     }
   });
 
@@ -540,30 +552,19 @@ $(document).ready(function() {
       
       if (event.room == 0 || event.room == -2) {
         var cell = $('[data-time="'+String(eventStart).replace('.','\\.')+'"]');
-        cell.text(event.name);
-        cell.addClass('top');
-        for (var j = eventStart; j < eventEnd; j+=0.5) {
-          cell = $('[data-time="'+j+'"]');
-          cell.addClass('booked');
-          cell.attr('data-event', event['id']);
-          if (j == eventEnd - 0.5) {
-            cell.addClass('bottom');
-          }
-        }
       } else {
         var cell = $(('#'+eventRoom +'-'+ String(eventStart).replace('.','\\.')));
-        cell.text(event.name);
-        cell.addClass('top');
-        for (var j = eventStart; j < eventEnd; j+=0.5) {
-          cell = $('#'+eventRoom +'-'+ String(j).replace('.','\\.'));
-          cell.addClass('booked');
-          cell.attr('data-event', event['id']);
-          if (j == eventEnd - 0.5) {
-            cell.addClass('bottom');
-          }
+      }
+      cell.text(event.name);
+      cell.addClass('top');
+      for (var j = eventStart; j < eventEnd; j+=0.5) {
+        cell = $('#'+eventRoom +'-'+ String(j).replace('.','\\.'));
+        cell.addClass('booked');
+        cell.attr('data-event', event['id']);
+        if (j == eventEnd - 0.5) {
+          cell.addClass('bottom');
         }
       }
-    
     }
     $('td.booked:not(.disabled)').mouseover(function() {
       highlightEvent($(this));
