@@ -10,9 +10,13 @@ $(document).ready(function() {
   
   $('#previousBtn').click(function() {
     if (currentView == 'multiple rooms') {
-      previousDay();
+      if (displayedDate.day() == 1) {
+        changeDate(displayedDate.subtract(2, 'days'));
+      } else {
+        changeDate(displayedDate.subtract(1, 'days'));
+      }
     } else {
-      previousWeek();
+      changeDate(displayedDate.subtract(1, 'weeks'))
     }
   });
 
@@ -20,49 +24,22 @@ $(document).ready(function() {
     if (currentView == 'multiple rooms') {
       changeDate(displayedDate.add(1, 'days'));
     } else {
-      nextWeek();
+      changeDate(displayedDate.add(1, 'weeks'))
     }
   });
 
-  /*function changeDate(newDate) {
-    if (selectedDate < newDate) { //disables ability to select previous days by forcing current day
-      $('#dateSelector').val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
-      selectedDate = new Date().setHours(0,0,0,0);
-    } else if (new Date(selectedDate).getDay() === 0) { //disables ability to select sundays by forcing the following monday
-      $('#dateSelector').val(new Date(selectedDate + 86400000).toISOString().substring(0,10));
-      selectedDate = new Date(date).setHours(24);
+  function changeDate(newDate) {
+    while (newDate.isBefore(moment(), 'day') || newDate.format('dddd') == 'Sunday') {
+      newDate.add(1, 'days');
     }
     if (currentView == 'multiple rooms') {
-      displayedDate = date;
-      console.log(displayedDate)
-      $('#roomsSelector').trigger('change', [currentView, displayedDate])
-    } else { //changed week
-      var dayDifference = (new Date(selectedDate).getDay()-1)*86400000;
-      mondayDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10); //Monday of that week
-      if (displayedDate !== mondayDate) {
-        displayedDate = mondayDate;
-        $('#roomsSelector').trigger('change', [currentView, displayedDate]);
-        populateColumnDays(displayedDate);
-      }
-    }*/
-    function changeDate(newDate) {
-      while (newDate.isBefore(moment(), 'day') || newDate.format('dddd') == 'Sunday') {
-        newDate.add(1, 'days');
-      }
       displayedDate = newDate;
-      $('#dateSelector').val(displayedDate.format('YYYY-MM-DD'));
-      if (currentView == 'multiple rooms') {
-        $('#roomsSelector').trigger('change', [currentView, displayedDate])
-      } else { //changed week
-        var dayDifference = (new Date(selectedDate).getDay()-1)*86400000; //TODO: MAKE MONDAYS WORK
-        mondayDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10); //Monday of that week
-        if (displayedDate !== mondayDate) {
-          displayedDate = mondayDate;
-          $('#roomsSelector').trigger('change', [currentView, displayedDate]);
-          populateColumnDays(displayedDate);
-        }
-      }
+    } else {
+      displayedDate.day(1);//TODO: date selector isn't working
     }
+    $('#dateSelector').val(displayedDate.format('YYYY-MM-DD'));
+    $('#roomsSelector').trigger('change', [currentView, displayedDate])
+  }
 
 ////////////////////////////////////////FRONTEND//////////////////////////////////////
 
@@ -109,7 +86,7 @@ $(document).ready(function() {
     var days = $('#daysHeader').children();
     for (var i = 1; i < days.length; i++) {
       var dateSpan = $('#'+days[i].children[0].id);
-      var dateToBeDisplayed = moment(displayedDate).subtract(i, 'days').format('MMM D');
+      var dateToBeDisplayed = moment(displayedDate).day(i).format('MMM D');
       if (dateToBeDisplayed === moment().format('MMM D')) {
         days[i].classList.add('today')
       }

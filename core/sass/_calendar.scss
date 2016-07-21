@@ -3,6 +3,11 @@
 	-webkit-user-select: none;
 	overflow: hidden;
 
+	input[type="date"]::-webkit-inner-spin-button { 
+	    -webkit-appearance: none;
+	    display: none;
+	}
+
 	#headerBar
 	{
 		text-align: center;
