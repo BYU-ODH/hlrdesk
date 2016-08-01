@@ -7,11 +7,13 @@ module.exports = {};
 
 var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-module.exports.getWeekEvents = co.wrap(function*(room, date, token) {
+module.exports.getWeekEvents = co.wrap(function*(room, dateObj, token) {
+  var date = new Date(dateObj).toISOString().substring(0,10);
   var saturday = new Date(new Date(date).setDate(new Date(new Date(date).getDate() + 5 - new Date(date).getDay()))).toISOString().substring(0,10);
   var events = [];
   var response = yield request('http://scheduler.hlrdev.byu.edu/rooms/'+room+'/events?token='+token+'&date='+date+'&end='+saturday+'&format=json');
   var allEvents = JSON.parse(response.body);
+  console.log('http://scheduler.hlrdev.byu.edu/rooms/'+room+'/events?token='+token+'&date='+date+'&end='+saturday+'&format=json')
 
   for (var i = 0; i < allEvents.length; i++) {
     var alreadyExists = false;
@@ -19,7 +21,7 @@ module.exports.getWeekEvents = co.wrap(function*(room, date, token) {
       if (allEvents[i]['id'] == events[j]['id']) {
         alreadyExists = true;
         break;
-      }
+      }                                                                           //TODO: Doesn't display some events
     }
     if (!alreadyExists && (allEvents[i]['room'] == room['id'] || allEvents[i]['room'] == -2 || allEvents[i]['room'] == 0 || allEvents[i]['room'] == -1)) {
       events.push(allEvents[i]);
@@ -28,7 +30,8 @@ module.exports.getWeekEvents = co.wrap(function*(room, date, token) {
   return events;
 });
 
-module.exports.getAllEvents = co.wrap(function*(date, rooms, token) {
+module.exports.getAllEvents = co.wrap(function*(dateObj, rooms, token) {
+  var date = new Date(dateObj).toISOString().substring(0,10);
   var roomIds = [];
   for (room in rooms) {
     roomIds.push(rooms[room].id)

@@ -1,6 +1,3 @@
-// move events assigners out of often-called functions
-// make a clean way to clear the grid
-
 var socket = io();
 var displayedDate = moment();
 
@@ -35,7 +32,7 @@ $(document).ready(function() {
     if (currentView == 'multiple rooms') {
       displayedDate = newDate;
     } else {
-      displayedDate.day(1);//TODO: date selector isn't working
+      displayedDate = newDate.day(1);
     }
     $('#dateSelector').val(displayedDate.format('YYYY-MM-DD'));
     $('#roomsSelector').trigger('change', [currentView, displayedDate])
@@ -59,26 +56,6 @@ $(document).ready(function() {
   });
 
   $('#dateSelector').on('change', function() {
-    // var selectedDate = new Date($(this).val()).setHours(24);
-    // if (selectedDate < new Date().setHours(0,0,0,0)) { //disables ability to select previous days by forcing current day
-    //   $(this).val(new Date(new Date().setHours(0,0,0,0)).toISOString().substring(0,10));
-    //   selectedDate = new Date().setHours(0,0,0,0);
-    // } else if (new Date(selectedDate).getDay() === 0) { //disables ability to select sundays by forcing the following monday
-    //   $(this).val(new Date(selectedDate + 86400000).toISOString().substring(0,10));
-    //   selectedDate = new Date($(this).val()).setHours(24);
-    // }
-    // if (currentView == 'multiple rooms') {
-    //   displayedDate = $(this).val();
-    //   $('#roomsSelector').trigger('change', [currentView, displayedDate])
-    // } else { //changed week
-    //   var dayDifference = (new Date(selectedDate).getDay()-1)*86400000;
-    //   mondayDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10); //Monday of that week
-    //   if (displayedDate !== mondayDate) {
-    //     displayedDate = mondayDate;
-    //     $('#roomsSelector').trigger('change', [currentView, displayedDate]);
-    //     populateColumnDays(displayedDate);
-    //   }
-    // }
     changeDate(moment($(this).val()));
   });
 
@@ -120,9 +97,6 @@ $(document).ready(function() {
     } else if (view == 'recordingStudio' || view == 'flac') {
       currentView = 'single room';
 
-      //var selectedDate = new Date($('#dateSelector').val()).setHours(24);
-      //var dayDifference = (new Date(selectedDate).getDay()-1)*86400000;
-      //displayedDate = new Date(selectedDate - dayDifference).toISOString().substring(0,10);
       displayedDate.day(1)
       populateColumnDays(displayedDate);
 
@@ -371,14 +345,17 @@ $(document).ready(function() {
       }
       if (currentView == 'multiple rooms') {
         var room = window.rooms[displayedRooms][cellRoom];
+        var start_date = displayedDate.format('YYYY')+','+displayedDate.format('M')+','+displayedDate.format('D')+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+(Number(displayedDate.format('d'))+1);
       } else {
         if (displayedRooms == 'recordingStudio') {
           var room = window.rooms[13];
         } else if (displayedRooms == 'flac') {
           var room = window.rooms[15];
         }
+        var days = {'monday':0, 'tuesday':1, 'wednesday':2, 'thursday':3, 'friday':4, 'saturday':5};
+        var date = displayedDate.add(days[cellColumn], 'days');
+        var start_date = date.format('YYYY')+','+displayedDate.format('M')+','+displayedDate.format('D')+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+(Number(displayedDate.format('d'))+1);
       }
-      var start_date = displayedDate.format('YYYY')+','+displayedDate.format('M')+','+displayedDate.format('D')+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+displayedDate.format('E');
       var start_time = firstCell.data('timereadable');
       var end_time = endTimeReadable;
       var request_id = $('#clientNetid').val();
@@ -389,6 +366,7 @@ $(document).ready(function() {
         var responsible_id = $('#clientNetid').val();
       }
       var event = {'room':room['id'], 'start_date':start_date, 'start_time':start_time, 'end_time':end_time, 'request_id':request_id, 'responsible_id':responsible_id, 'desc':desc};
+console.log(event)
       submitEvent(event);
     });
 
@@ -418,7 +396,6 @@ $(document).ready(function() {
     $('#saveEvent').off('click');
     $('#cancel').off('click');
     $('#eventWindow header').off('mousedown');
-    //$('td').off('mouseover');
   }
 
   function drag(e, element){
@@ -473,7 +450,7 @@ $(document).ready(function() {
 /////////////////////////////////////////////////BACKEND/////////////////////////////////////////
 
   function getRoomEventsForWeek(room, monday) {
-    socket.emit('get week events', {'user':window.user, 'room':room, 'date':monday, 'token':'ABC123'});
+    socket.emit('get week events', {'user':window.user, 'room':room['id'], 'date':monday, 'token':'ABC123'});
   }
 
   function getDayEventsForRooms(rooms, date) {
@@ -493,12 +470,12 @@ $(document).ready(function() {
   function submitEvent(event) {
     clearSelection();
     selectedCells.length = 0;
-    cloak('Submitting...')
+    cloak('Submitting...');
     socket.emit('new event', {'event':event, 'token':'ABC123', 'view':currentView})
   }
 
   socket.on('refresh events', function() {
-    clearSelection();
+    //clearSelection();
     selectedCells.length = 0;
     if (currentView == 'multiple rooms') {
       getDayEventsForRooms(window.rooms[displayedRooms], displayedDate.format('YYYY-MM-DD'));
@@ -509,7 +486,8 @@ $(document).ready(function() {
   });
 
   function deleteEvent(event) {
-    cloak('Loading...');
+    clearSelection();
+    cloak('Processing...');
     var cell = $('[data-event="'+event.id+'"]');
     cell.text('');
     cell.removeClass();
@@ -601,12 +579,3 @@ Array.prototype.itemAt = Array.prototype.itemAt || function(index) {
     return this[index];
   }
 }
-
-Date.prototype.setDay = Date.prototype.setDay || function (dayIndex) {
-  dayIndex = Math.floor(+dayIndex);
-  if (dayIndex < 0 || 6 < dayIndex) {
-    throw new Error("Must pass integer between 0-6, where sunday is 0.");
-  }
-  this.setDate( this.getDate() + dayIndex - this.getDay() );
-  return this.valueOf();
-};
