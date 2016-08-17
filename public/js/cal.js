@@ -6,14 +6,16 @@ $(document).ready(function() {
 ////////////////////////////////////////EVENT LISTENERS///////////////////////////////
   
   $('#previousBtn').click(function() {
-    if (currentView == 'multiple rooms') {
-      if (displayedDate.day() == 1) {
-        changeDate(displayedDate.subtract(2, 'days'));
+    if (!$(this).hasClass('disabledBtn')) {
+      if (currentView == 'multiple rooms') {
+        if (displayedDate.day() == 1) { //if day is Monday
+          changeDate(displayedDate.subtract(2, 'days'));
+        } else {
+          changeDate(displayedDate.subtract(1, 'days'));
+        }
       } else {
-        changeDate(displayedDate.subtract(1, 'days'));
+        changeDate(displayedDate.subtract(1, 'weeks'))
       }
-    } else {
-      changeDate(displayedDate.subtract(1, 'weeks'))
     }
   });
 
@@ -30,8 +32,18 @@ $(document).ready(function() {
       newDate.add(1, 'days');
     }
     if (currentView == 'multiple rooms') {
+      if (displayedDate.isSame(moment(), 'day')) {
+        $('#previousBtn').addClass('disabledBtn');
+      } else {
+        $('#previousBtn').removeClass('disabledBtn');
+      }
       displayedDate = newDate;
     } else {
+      if (displayedDate.isSame(moment(), 'week')) {
+        $('#previousBtn').addClass('disabledBtn');
+      } else {
+        $('#previousBtn').removeClass('disabledBtn');
+      }
       displayedDate = newDate.day(1);
     }
     $('#dateSelector').val(displayedDate.format('YYYY-MM-DD'));
@@ -232,16 +244,29 @@ $(document).ready(function() {
         });
       }
       $('#eventName').val(cellEvent.name);
-      $('#eventRoom').text(cellRoom);
+      $('#clientNetid').text(cellEvent.contact_netid);
+      $('#proxyEvent').hide();
+      if (cellEvent.contact_netid !== cellEvent.responsible_netid) {
+        $('#proxyEvent').show();
+        $('#overseerNetid').text(cellEvent.responsible_netid);
+      }
+      if (cellEvent.notes[0] == '{') {
+        var note = JSON.parse(cellEvent.notes)
+        $('#contactEmail').text(note.email);
+        $('#contactPhone').text(note.phone);
+      }
+      $('#roomOfEvent').text(cellRoom);
     } else {
       var editing = false;
       $('#eventHeader').text('Create Event');
       $('.editing').hide();
       $('.creating').show();
       $('#eventName').val('');
-      $('#eventRoom').text(cellRoom);
-      $('#clientNetid').val('');
-      $('#overseerNetidBox').val('');
+      $('#roomOfEvent').text(cellRoom);
+      $('#clientNetidInput').val('');
+      $('#contactEmailInput').val('');
+      $('#contactPhoneInput').val('');
+      $('#overseerNetidInputBox').val('');
     }
 
     //Populate Time Options
@@ -325,23 +350,23 @@ $(document).ready(function() {
       return newSelection;
     }
 
-    $('#overseerNetid').hide();
+    $('#overseerNetidInput').hide();
     $('#clientIsOverseer').prop('checked', false);
     $('#clientIsOverseer').click(function() {
       if ($(this).prop('checked')) {
-        $('#overseerNetid').show();
+        $('#overseerNetidInput').show();
       } else {
-        $('#overseerNetid').hide();
+        $('#overseerNetidInput').hide();
       }
     });
 
     $('#saveEvent').click(function() {
       var desc = $('#eventName').val();
-      var request_id = $('#clientNetid').val();
-      if ($('#clientNetid').val() !== $('#overseerNetid').val()) {
-        var responsible_id = $('#overseerNetid').val();
+      var request_id = $('#clientNetidInput').val();
+      if ($('#clientNetidInput').val() !== $('#overseerNetidInput').val()) {
+        var responsible_id = $('#overseerNetidInput').val();
       } else {
-        var responsible_id = $('#clientNetid').val();
+        var responsible_id = $('#clientNetidInput').val();
       }
       if (currentView == 'multiple rooms') {
         var room = window.rooms[displayedRooms][cellRoom];
@@ -358,18 +383,62 @@ $(document).ready(function() {
       }
       var start_time = firstCell.data('timereadable');
       var end_time = endTimeReadable;
-      var request_id = $('#clientNetid').val();
+      var request_id = $('#clientNetidInput').val();
       var desc = $('#eventName').val();
       if ($('#clientIsOverseer').prop('checked')) {
-        var responsible_id = $('#overseerNetidBox').val();
+        var responsible_id = $('#overseerNetidInputBox').val();
       } else {
-        var responsible_id = $('#clientNetid').val();
+        var responsible_id = $('#clientNetidInput').val();
       }
-      var event = {'room':room['id'], 'start_date':start_date, 'start_time':start_time, 'end_time':end_time, 'request_id':request_id, 'responsible_id':responsible_id, 'desc':desc};
-console.log(event)
-      submitEvent(event);
+      function inputError(field) {
+        $('#submitError').show();
+        $('#invalidField').text(field);
+        $('#eventWindow').addClass('blurred');
+        $('#eventWindow').css('z-index', 0)
+        $('#closeInvalidWindow').click(function() {
+          $('#submitError').hide();          
+          $('#eventWindow').removeClass('blurred');
+          $('#eventWindow').css('z-index', 1)
+        });
+      }
+      if (desc == '') {
+        inputError('n event name');
+      } else if (responsible_id == '') {
+        inputError(' netid or name')
+      } else if ($('#contactEmailInput').val() != '' && !/\S+@\S+\.\S+/.test($('#contactEmailInput').val())) {
+        inputError(' valid email address or leave it blank');
+      } else if ($('#contactPhoneInput').val() != '' && !/^\D?(\d{3})\D?\D?(\d{3})\D?(\d{4})$/.test($('#contactPhoneInput').val())) {
+        inputError(' valid nine digit phone number or leave it blank');
+      } else {
+        var noteObj = {'email':$('#contactEmailInput').val(), 'phone':$('#contactPhoneInput').val()};
+        var note = JSON.stringify(noteObj);
+        var event = {'room':room['id'], 'start_date':start_date, 'start_time':start_time, 'end_time':end_time, 'request_id':request_id, 'responsible_id':responsible_id, 'desc':desc, 'note':note};
+        submitEvent(event);
+      }
     });
 
+    $('#editEvent').off('click');
+    $('#editEvent').click(function() {
+      var editedEvent = {};
+      var id = cellEvent['id'];
+      if (currentView == 'multiple rooms') {
+        var start_date = displayedDate.format('YYYY')+','+displayedDate.format('M')+','+displayedDate.format('D')+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+(Number(displayedDate.format('d'))+1);
+      } else {
+        var days = {'monday':0, 'tuesday':1, 'wednesday':2, 'thursday':3, 'friday':4, 'saturday':5};
+        var date = displayedDate.add(days[cellColumn], 'days');
+        var start_date = date.format('YYYY')+','+displayedDate.format('M')+','+displayedDate.format('D')+','+Math.floor(firstCell.data('time'))+','+(firstCell.data('time')%1===0?'0':'30')+',0,'+(Number(displayedDate.format('d'))+1);
+      }
+      editedEvent['room'] = cellEvent['room'];
+      editedEvent['request_id'] = cellEvent['contact_netid'];
+      editedEvent['responsible_id'] = cellEvent['responsible_netid'];
+      editedEvent['desc'] = $('#eventName').val();
+      editedEvent['start_time'] = firstCell.data('timereadable');
+      editedEvent['start_date'] = start_date;
+      editedEvent['end_time'] = endTimeReadable;
+      editedEvent['note'] = cellEvent['note'];
+      editedEvent['term'] = cellEvent['term'];
+      editEvent(editedEvent, id);
+    });
 
     $('#deleteEvent').off('click');
     $('#deleteEvent').click(function() {
@@ -394,6 +463,7 @@ console.log(event)
     $('#clientIsOverseer').off('click');
     $('#deleteEvent').off('click');
     $('#saveEvent').off('click');
+    $('#editEvent').off('click');
     $('#cancel').off('click');
     $('#eventWindow header').off('mousedown');
   }
@@ -450,11 +520,13 @@ console.log(event)
 /////////////////////////////////////////////////BACKEND/////////////////////////////////////////
 
   function getRoomEventsForWeek(room, monday) {
-    socket.emit('get week events', {'user':window.user, 'room':room['id'], 'date':monday, 'token':'ABC123'});
+    mondayString = monday.format('YYYY-MM-DD');
+    socket.emit('get week events', {'user':window.user, 'room':room['id'], 'date':mondayString, 'token':'ABC123'});
   }
 
   function getDayEventsForRooms(rooms, date) {
-    socket.emit('get day events', {'user':window.user, 'rooms':rooms, 'date':date, 'token':'ABC123'});
+    var dateString = date.format('YYYY-MM-DD');
+    socket.emit('get day events', {'user':window.user, 'rooms':rooms, 'date':dateString, 'token':'ABC123'});
   }
 
   socket.on('get day events', function(events) {
@@ -475,13 +547,13 @@ console.log(event)
   }
 
   socket.on('refresh events', function() {
-    //clearSelection();
     selectedCells.length = 0;
+    disablePastCells();
     if (currentView == 'multiple rooms') {
-      getDayEventsForRooms(window.rooms[displayedRooms], displayedDate.format('YYYY-MM-DD'));
+      getDayEventsForRooms(window.rooms[displayedRooms], displayedDate);
     } else if (currentView == 'single room') {
       var roomId = displayedRooms == 'recordingStudio' ? 13 : 15;
-      getRoomEventsForWeek(window.rooms[roomId], displayedDate.format('YYYY-MM-DD'));
+      getRoomEventsForWeek(window.rooms[roomId], displayedDate);
     }
   });
 
@@ -494,6 +566,17 @@ console.log(event)
     cell.removeAttr('data-event');
 
     socket.emit('delete event', {'event':event, 'token':'ABC123'});
+  }
+
+  function editEvent(event, eventId) {
+    clearSelection();
+    cloak('Processing...');
+    var cell = $('[data-event="'+eventId+'"]');
+    cell.text('');
+    cell.removeClass();
+    cell.removeAttr('data-event');
+
+    socket.emit('edit event', {'event':event, 'id':eventId, 'token':'ABC123'});
   }
 
   function placeDayEvents(events) {
@@ -513,7 +596,11 @@ console.log(event)
       cell.text(event.name);
       cell.addClass('top');
       for (var j = eventStart; j < eventEnd; j+=0.5) {
-        cell = $('#'+eventRoom +'-'+ String(j).replace('.','\\.'));
+        if (event.room == 0 || event.room == -2) {
+          var cell = $('[data-time="'+String(j).replace('.','\\.')+'"]');
+        } else {
+          var cell = $(('#'+eventRoom +'-'+ String(j).replace('.','\\.')));
+        }
         cell.addClass('booked');
         cell.attr('data-event', event['id']);
         if (j == eventEnd - 0.5) {

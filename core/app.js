@@ -147,7 +147,7 @@ app.use(_.get('/check-out', function *() {
 
 app.use(_.get('/edit-catalog', function *() {
   var client = db();
-  var media_types = yield client.query("SELECT * FROM media ORDER BY media ASC;");
+  var media_types = yield client.query("SESourLECT * FROM media ORDER BY media ASC;");
   var lang = yield client.query("SELECT * FROM languages ORDER BY name ASC;");
   yield this.render('edit-catalog', {
     title: "Edit Item",
@@ -170,39 +170,10 @@ app.use(_.get("/extras", function *() {
 }));
 
 app.use(_.get("/calendar", function *(next) {
-  // temporary redirect so we can spend time integrating
-  // the desktop application
-  //this.redirect('https://hlr.byu.edu/schedule/');
-  //yield next;
-
   var token = 'ABC123';
-  var response = yield request('http://scheduler.hlrdev.byu.edu/rooms?token='+token+'&format=json');
+  var response = yield request('http://'+ENV.SCHEDHOST+'/rooms?token='+token+'&format=json');
   var rooms = JSON.parse(response.body);
-
-  /*var options = {
-    url: String("http://scheduler.hlrdev.byu.edu/event?token="+token+"&format=json"),
-    headers: {'content-type':'application/x-www-form-urlencoded', 'User-Agent':'request'},
-    method: 'post',
-    form: { 
-      room: '28',
-      start_date: '2016,5,20,12,30,0,2',
-      start_time: '12:30 PM',
-      end_time: '1:30 PM',
-      request_id: 'prabbit',
-      responsible_id: 'prabbit',
-      desc: 'TEST EVENT',
-      frequency: 'single'
-    }
-
-  }
-  var post = yield request(options);
-  console.log(post.body)*/
-
-  var client = db();
-  var isAdmin = yield auth.isAdmin(this.session.user);
-  var allCalendarEvents = yield client.query('SELECT * FROM calendar;');
-
-  yield this.render('calendar', {layout: this.USE_LAYOUT, date: new Date(), allCalendarEvents: allCalendarEvents, user: this.session.user, isAdmin:isAdmin, rooms: rooms});
+  yield this.render('calendar', {layout: this.USE_LAYOUT, date: new Date(), user: this.session.user, isAdmin:isAdmin, rooms: rooms});
 }));
 
 app.use(_.get("/signin", function *(next){

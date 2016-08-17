@@ -36,7 +36,7 @@
       </select>
       &nbsp;
       Go to
-      <button id='previousBtn' class='mainBtn smallBtn'>◀</button>
+      <button id='previousBtn' class='mainBtn smallBtn disabledBtn'>◀</button>
       <input type='date' id='dateSelector' value='<%=new Date().toISOString().substring(0, 10)%>' min='<%=new Date().toISOString().substring(0, 10)%>' required='required'></input>
       <button id='nextBtn' class='mainBtn smallBtn'>▶</button>
       &nbsp;
@@ -201,15 +201,22 @@
         <% } %>
       </select> to <span id='eventEndTime'></span></p>
       <p>For <select id='eventDurationSelect'></select> hours</p>
-      <p>In <span id='eventRoom'></span></p><br>
+      <p>In <span id='roomOfEvent'></span></p><br>
       <p>Event name: <input type='text' id='eventName'></input></p><br>
 
-      <p class='creating'>Client's netid: <input type='text' id='clientNetid'></input></p>
-      <p class='halfSize creating'><input type='checkbox' id='clientIsOverseer'>Reservation is being made on behalf of someone else</input></p>
-      <p id='overseerNetid' style="display:none">Overseer's netid: <input type='text' id='overseerNetidBox'></input></p>
+      <u class='creating'>Contact Information</u>
+      <p class='creating'>Client's netid: <input type='text' id='clientNetidInput'></input></p>
+      <p class='creating'>Email Address: <input type='text' id='contactEmailInput'></p>
+      <p class='creating'>Phone Number: <input type='text' id='contactPhoneInput'></p>
+      <p class='creating halfSize'><input type='checkbox' id='clientIsOverseer'>Reservation is being made on behalf of someone else</input></p>
+      <p class='creating' id='overseerNetidInput' style="display:none">Person in charge: <input type='text' id='overseerNetidInputBox'></input></p>
+
+      <p class='editing'> Reserved by: <span id='clientNetid'></span><span id='proxyEvent' style="display:none"> for <span id='overseerNetid'></span></span></p>
+      <p class='editing'> Email: <span id='contactEmail'></span></p>
+      <p class='editing'> Phone: <span id='contactPhone'></span></p>
 
       <button id='deleteEvent' class='redBtn editing'>Delete Event</button><br>
-      <button id='saveEvent' class='greenBtn'>Save</button><button id='cancel' class='redBtn'>Cancel</button>
+      <button id='saveEvent' class='creating greenBtn'>Save</button><button id='editEvent' class='editing greenBtn'>Save</button><button id='cancel' class='redBtn'>Cancel</button>
     </div>
 
     <div id='editError' class='window' style='display:none; left:40%; top:40%;'>
@@ -217,6 +224,12 @@
       <p>Sorry, but this event is not editable.</p>
       <p>Please contact your supervisor if you wish to make changes.</p>
       <button id='closeErrorWindow' class='redBtn'>Close</button>
+    </div>
+
+    <div id='submitError' class='window' style='display:none; left:40%; top:40%;'>
+      <header>Invalid Entry</header>
+      <p>Please enter a<span id='invalidField'></span>.</p>
+      <button id='closeInvalidWindow' class='redBtn'>Close</button>
     </div>
 
   </section>
