@@ -5,6 +5,7 @@ var render = require('koa-ejs')
 var path = require('path')
 var fs = require('fs');
 var assert = require('assert');
+var request = require('koa-request');
 
 var socket = require('koa-socket');
 
@@ -206,15 +207,10 @@ app.use(_.get("/extras", function *() {
 }));
 
 app.use(_.get("/calendar", function *(next) {
-  // temporary redirect so we can spend time integrating
-  // the desktop application
-  this.redirect('https://hlr.byu.edu/schedule/');
-  yield next;
-
-  //var client = db();
-  //var isAdmin = yield auth.isAdmin(this.session.user);
-  //var allCalendarEvents = yield client.query('SELECT * FROM calendar;');
-  //yield this.render('calendar', {layout: this.USE_LAYOUT, date: new Date(), allCalendarEvents: allCalendarEvents, user: this.session.user, isAdmin:isAdmin});
+  var token = ENV.SCHEDTOKEN;
+  var response = yield request('http://'+ENV.SCHEDHOST+'/rooms?token='+token+'&format=json');
+  var rooms = JSON.parse(response.body);
+  yield this.render('calendar', {layout: this.USE_LAYOUT, date: new Date(), user: this.session.user, isAdmin:isAdmin, rooms: rooms});
 }));
 
 app.use(_.get("/signin", function *(next){
