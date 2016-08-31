@@ -15,6 +15,7 @@
     "koa": "^0.16.0",
     "koa-csrf": "^2.1.3",
     "koa-ejs": "^1.1.2",
+    "koa-request": "^1.0.0",
     "koa-route": "~2.2.0",
     "koa-session": "2.0.0",
     "koa-socket": "git://github.com/alexcdahl/koa-socket.git#8409d27ed5a680899b1ff0b63827397cf2948369",

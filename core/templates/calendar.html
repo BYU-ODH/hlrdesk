@@ -1,168 +1,242 @@
 <script>
-  <% var roomsHLRC =  ["Recording Studio", "1141A", "1141B", "1141C", "1141D"] %>
-  <% var roomsHTRSC = ["B160", "B164", "B181", "B013", "B161", "1161", "B003", "1131A", "1133A", "1133B", "FLAC"] %>
-  window.rooms = {};
-  window.rooms.HLRC = ("<%- (roomsHLRC.toString()) %>").split(",");
-  window.rooms.HTRSC = ("<%- roomsHTRSC.toString() %>").split(",");
-</script>
-<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
-<body>
-  <section id="calendar">
-    <button id="switchView" class = "mainBtn">Change View</button><select id="resourceSelect">
-      <option>HLRC</option>
-      <option>HTRSC</option>
-    </select>
-    <%if (isAdmin) {%> <input type="checkbox" id="displayCheckbox">Show Requests</input> <% } %>
-    <div id="weekView">
-      <button id="backBtn" disabled=true class = "disabledBtn">Back</button><button id="forwardBtn" class = "mainBtn">Forward</button><select id="displayRoomSelect">
-        <% for (var i = 0; i < roomsHLRC.length; i++) { %>
-          <option><%=roomsHLRC[i]%></option>
-        <% } %>
-      </select>
-      <br>
-      <table id="weekGrid" class="calendar">
-        <% var days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]; %>
-        <% for (var i=7; i<=20; i++) { if (i == 7) { %>
-          <tr>
-            <th class="blank"></th>
-              <% for (var k=0; k<days.length; k++) { %>
-              <th class="day" id="<%= new Date(date.getTime()+((k)-(date.getDay()-1))*86400000).toDateString() %>">
-                <%= days[k]+" "+new Date(date.getTime()+((k)-(date.getDay()-1))*86400000).getDate() %>
-              </th>
-            <% } %>
-          </tr>
+  window.rooms = {'studyRooms':{}, 'specialtyRooms':{}, 'otherRooms':{}};
+  <% var studyRooms = []; %>
+  <% var specialtyRooms = []; %>
+  <% var otherRooms = []; %>
+  <% for (var i = 0; i < rooms.length; i++) { %>
+    window.rooms['<%- rooms[i].id %>'] = <%- JSON.stringify(rooms[i]) %>;
+    <% if ('location' in rooms[i] && 'name' in rooms[i]) { %>
+      <% if (rooms[i]['location'].substring(0, 5).match(/11(31|33|41)[A-E]/)) { %>
+        <% studyRooms.push(rooms[i]); %>
+        window.rooms.studyRooms['<%- rooms[i].name %>'] = <%- JSON.stringify(rooms[i]) %>;
+      <% } else if (rooms[i]['name'] == "Foreign Lang Activity Commons" || rooms[i]['name'] == "Recording Studio") { %>
+        <% specialtyRooms.push(rooms[i]); %>
+        window.rooms.specialtyRooms['<%- rooms[i].name %>'] = <%- JSON.stringify(rooms[i]) %>;
       <% } else { %>
-        <tr>
-          <% for (var j=0; j<=6; j++) { if (j==0) { %>
-            <th class="time"><%= (i!=7)?((i<=12)?i:i-12):"" %>:00</th>
-          <% } else { %>
-            <td id= "<%=days[j-1]+" "+i%>" data-time="<%=i%>" data-day="<%=j%>" ></td>
-          <% } } %>
-        </tr>
-      <% } } %>
-      </table>
-    </div>
-    <div id="dayView" class="hidden">
-      <button id="date"><%= date.toDateString() %></button>
-      <button id="previousDay" disabled=true class = "disabledBtn">Previous Day</button><button id="nextDay" class = "mainBtn">Next Day</button>
-      <table id="dayGrid" class="calendar">
-        <% for (var i=7; i<=20; i++) { if (i == 7) { %>
-          <tr>
-            <th class="blank"></th>
-              <% for (var k=0; k<roomsHLRC.length; k++) { %>
-              <th class="room">
-                <%= roomsHLRC[k] %>
-              </th>
-            <% } %>
-          </tr>
-      <% } else { %>
-        <tr>
-          <% for (var j=0; j<=roomsHLRC.length; j++) { if (j==0) { %>
-            <th class="time"><%= (i!=7)?((i<=12)?i:i-12):"" %>:00</th>
-          <% } else { %>
-            <td id= "<%=roomsHLRC[j-1]+" "+i%>" data-time="<%=i%>" data-room="<%= roomsHLRC[j-1] %>"></td>
-          <% } } %>
-        </tr>
-      <% } } %>
-      </table>
-    </div>
-    <div id="popup" style="position: absolute;" class="hidden">
-      <%if (isAdmin) { %> User: <input id=userInput maxlength=8 size=8 value=<%=user%>></input><br> <% }; %>
-      Room: <select id="roomSelect">
-        <option>Recording Studio</option>
-        <option>1141A</option>
-        <option>1141B</option>
-        <option>1141C</option>
-        <option>1141D</option>
-      </select><br>
-      Date: <select id="dateSelect">
-        <% for (var i = 0; i <= 14+(6-date.getDay()); i++) { %>
-          <% var newDate =  new Date(date.getTime()+86400000*i) %>
-          <% if (newDate.getHours() >= 21) { %>
-            <% newDate.setTime(newDate.getTime() + 86400000); %>
-          <% } %>
-          <% if (newDate.getDay() !== 0) { %>
-            <option> <%= newDate.toDateString() %> </option>
-          <% } %>
-        <% } %>
-      </select><br>
-      Time: <select id="timeSelect">
-        <% for (var i = 8; i<=20; i++) { %>
-          <option value=<%= i %>><%= (i!=7)?((i<=12)?i:i-12):"" %>:00</option>
-        <% } %>
-      </select><br>
-      Duration: <select id="durationSelect">
-        <option value="1">1 Hour</option>
-        <option value="2">2 Hours</option>
-        <option value="3">3 Hours</option>
-      </select><br>
-      Event Name: <input id=nameInput maxlength="20"></input><br>
-      <div id="popupButtons">
-        <button id = "requestButton" class = "greenBtn">Request</button>
-        <button id="deleteButton" class="redBtn">Cancel</button><button id="saveButton" class="greenBtn">Save</button>
-      </div>
-    </div>
-  </section>
-</body>
-<template id="dayViewHLRC">
-  <div id="dayView" class="hidden">
-    <button id="date"><%= date.toDateString() %></button>
-    <button id="previousDay" disabled=true class = "disabledBtn">Previous Day</button><button id="nextDay" class = "mainBtn">Next Day</button>
-    <table id="dayGrid" class="calendar">
-      <% for (var i=7; i<=20; i++) { if (i == 7) { %>
-        <tr>
-          <th class="blank"></th>
-            <% for (var k=0; k<roomsHLRC.length; k++) { %>
-            <th class="room">
-              <%= roomsHLRC[k] %>
-            </th>
-          <% } %>
-        </tr>
-    <% } else { %>
-      <tr>
-        <% for (var j=0; j<=roomsHLRC.length; j++) { if (j==0) { %>
-          <th class="time"><%= (i!=7)?((i<=12)?i:i-12):"" %>:00</th>
-        <% } else { %>
-          <td id= "<%=roomsHLRC[j-1]+" "+i%>" data-time="<%=i%>" data-room="<%= roomsHLRC[j-1] %>"></td>
-        <% } } %>
-      </tr>
-    <% } } %>
-    </table>
-  </div>
-</template>
-<template id="dayViewHTRSC">
-  <table class="calendar">
-    <% for (var i=7; i<=20; i++) { if (i == 7) { %>
-      <tr>
-        <th class="blank"></th>
-          <% for (var k=0; k<roomsHTRSC.length; k++) { %>
-          <th class="room">
-            <%= roomsHTRSC[k] %>
-          </th>
-        <% } %>
-      </tr>
-  <% } else { %>
-    <tr>
-      <% for (var j=0; j<=roomsHTRSC.length; j++) { if (j==0) { %>
-        <th class="time"><%= (i!=7)?((i<=12)?i:i-12):"" %>:00</th>
-      <% } else { %>
-        <td id= "<%=roomsHTRSC[j-1]+" "+i%>" data-time="<%=i%>" data-room="<%= roomsHTRSC[j-1] %>"></td>
-      <% } } %>
-    </tr>
-  <% } } %>
-  </table>
-</template>
-<template id="prompt">
-  <header id="promptTitle"></header>
-  <ol id="promptText"></ol>
-  <button id="promptYes" class="greenBtn">Yes</button>
-  <button id="promptNo" class="redBtn">No</button>
-</template>
-<script>
-  window.now = <%- date.getTime() %>;
-  window.isAdmin = <%= isAdmin %>;
-  window.allEvents = <%- JSON.stringify(allCalendarEvents) %>;
-  window.userName = "<%- user %>";
-</script>
-<script src="/js/cal.js"></script>
+        <% otherRooms.push(rooms[i]); %>
+        window.rooms.otherRooms['<%- rooms[i].name %>'] = <%- JSON.stringify(rooms[i]) %>;
+      <% } %>
+    <% } %>
+  <% } %>
+  <% studyRooms.sort(); %>
+  <% otherRooms.sort(); %>
 
+  window.isAdmin = <%= isAdmin %>;
+  window.user = "<%- user %>";
+  
+</script>
+<body>
+  <section id='calendar'>
+    <div id='headerBar' class='blurred'>
+      <select id='roomsSelector'>
+        <option>Study Rooms</option>
+        <option>Recording Studio</option>
+        <option>FLAC</option>
+        <!--<option>Other Rooms</option>-->
+      </select>
+      &nbsp;
+      Go to
+      <button id='previousBtn' class='mainBtn smallBtn disabledBtn'>◀</button>
+      <input type='date' id='dateSelector' value='<%=new Date().toISOString().substring(0, 10)%>' min='<%=new Date().toISOString().substring(0, 10)%>' required='required'></input>
+      <button id='nextBtn' class='mainBtn smallBtn'>▶</button>
+      &nbsp;
+
+    </div>
+
+    <div id='visibleGrid' class='blurred'></div>
+
+    <div id='blanket'>Loading...</div>
+
+    <template id='studyRooms'>
+
+      <table id="studyRoomsGrid" class="calendar">
+        <% for (var i=7.5; i<=20.5; i=i+0.5) { %>
+          <% if (i < 8) { %>
+            <tr>
+              <th class="blank"></th>
+              <% for (var k=0; k<studyRooms.length; k++) { %>
+                <th class="room"><%= studyRooms[k].location %> (<%= studyRooms[k].capacity %>)</th>
+              <% } %>
+            </tr>
+          <% } else { %>
+            <tr>
+              <% for (var j=0; j<=studyRooms.length; j++) { %>
+                <% if (j==0) { %>
+                  <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
+                <% } else { %>
+                  <td id= "<%=studyRooms[j-1].location.replace(' ','_')+'-'+String(i)%>" data-time="<%=i%>" data-room="<%= studyRooms[j-1].name %>" data-timereadable="<%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %>"</td>
+                <% } %>
+              <% } %>
+            </tr>
+          <% } %>
+        <% } %>
+      </table>
+
+      <% for (var i=0; i<studyRooms.length; i++) { %>
+        <div id='<%= studyRooms[i].location.substring(0, studyRooms[i].location.indexOf(" ")) %>' class='roomInfo'>
+          <u><%= studyRooms[i].name %></u><br>
+          <table>
+            <tr>
+              <td class='left'>Capacity:</td><td class='right'><%= studyRooms[i].capacity %></td>
+            </tr><tr>
+              <td class='left'>Location:</td><td class='right'><%= studyRooms[i].location %></td>
+            </tr><tr>
+              <td class='left'></td><td class='right'><%= studyRooms[i].directions %></td>
+            </tr><tr>
+              <td class='left'>Amenities:</td><td class='right'> <%= studyRooms[i].amenities %></td>
+            </tr><!--<tr>
+              <td class='left'>ID:</td><td class='right'> <%= studyRooms[i].id %></td>
+            </tr>-->
+          </table>
+        </div>
+      <% } %>
+
+    </template>
+
+    <template id="recordingStudio" class='hidden'>
+
+      <table id="recStudioGrid" class="calendar">
+        <% for (var i=7.5; i<=20.5; i=i+0.5) { %>
+          <% if (i<8) { %>
+            <tr id='daysHeader'>
+              <th class="blank"></th>
+              <% var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; %>
+              <% for (var k=0; k<days.length; k++) { %>
+                <th class="day"><%= days[k] %> <span id='<%=days[k].toLowerCase()%>Column'</th>
+              <% } %>
+            </tr>
+          <% } else { %>
+            <tr>
+              <% for (var j=0; j<=days.length; j++) { %>
+                <% if (j==0) { %>
+                  <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
+                <% } else {%>
+                  <td id= "<%= String(days[j-1]).toLowerCase()+'-'+String(i)%>" data-time="<%=i%>" data-day="<%=String(days[j-1]).toLowerCase()%>" data-timereadable="<%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %>"></td>
+                <% } %>
+              <% } %>
+            </tr>
+          <% } %>
+        <% } %>
+      </table>
+
+    </template>
+
+    <template id='flac' class='hidden'>
+
+      <table id="FLACGrid" class="calendar">
+        <% for (var i=7.5; i<=20.5; i=i+0.5) { %>
+          <% if (i<8) { %>
+            <tr id='daysHeader'>
+              <th class="blank"></th>
+              <% var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; %>
+              <% for (var k=0; k<days.length; k++) { %>
+                <th class="day"><%= days[k] %> <span id='<%=days[k].toLowerCase()%>Column'</th>
+              <% } %>
+            </tr>
+          <% } else { %>
+            <tr>
+              <% for (var j=0; j<=days.length; j++) { %>
+                <% if (j==0) { %>
+                  <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
+                <% } else {%>
+                  <td id= "<%= String(days[j-1]).toLowerCase()+'-'+String(i)%>" data-time="<%=i%>" data-day="<%=String(days[j-1]).toLowerCase()%>"data-timereadable="<%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %>"></td>
+                <% } %>
+              <% } %>
+            </tr>
+          <% } %>
+        <% } %>
+      </table>
+
+    </template>
+
+    <!--<template id='otherRooms' class='hidden'>
+
+      <table id="otherRoomsGrid" class="calendar">
+        <% for (var i=7.5; i<=20.5; i=i+0.5) { %>
+          <% if (i < 8) { %>
+            <tr>
+              <th class="blank"></th>
+              <% for (var k=0; k<otherRooms.length; k++) { %>
+                <th class="room"><%= otherRooms[k].location %></th>
+              <% } %>
+            </tr>
+          <% } else { %>
+            <tr>
+              <% for (var j=0; j<=otherRooms.length; j++) { %>
+                <% if (j==0) { %>
+                  <th class="time"><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%></th>
+                <% } else { %>
+                  <td id= "<%=otherRooms[j-1].location.replace(' ','_')+'-'+String(i)%>" data-time="<%=i%>" data-room="<%= otherRooms[j-1].name %>" data-timereadable="<%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %>"</td>
+                <% } %>
+              <% } %>
+            </tr>
+          <% } %>
+        <% } %>
+      </table>
+      <% for (var i=0; i<otherRooms.length; i++) { %>
+      <div id='<%= otherRooms[i].location.substring(0, otherRooms[i].location.indexOf(" ")) %>' class='roomInfo'>
+        <u><%= otherRooms[i].name %></u><br>
+        <table>
+          <tr>
+            <td class='left'>Capacity:</td><td class='right'><%= otherRooms[i].capacity %></td>
+          </tr><tr>
+            <td class='left'>Location:</td><td class='right'><%= otherRooms[i].location %></td>
+          </tr><tr>
+            <td class='left'></td><td class='right'><%= otherRooms[i].directions %></td>
+          </tr><tr>
+            <td class='left'>Amenities:</td><td class='right'> <%= otherRooms[i].amenities %></td>
+          </tr>
+        </table>
+      </div>
+    <% } %>
+
+    </template>-->
+
+    <div id='eventWindow' class='window' style='display:none'>
+      <header id='eventHeader'></header>
+      <p id='eventDate'></p>
+      <p>From: <select id='eventTime'>
+        <% for (var i = 8; i < 21; i += 0.5) { %>
+          <option value=<%= i %>><%= (i>=7)?Math.floor((i<=12.5)?i:i-12):''%>:<%=(i%1==0)?'00':'30'%> <%= (i<12)?'AM':'PM' %></option>
+        <% } %>
+      </select> to <span id='eventEndTime'></span></p>
+      <p>For <select id='eventDurationSelect'></select> hours</p>
+      <p>In <span id='roomOfEvent'></span></p><br>
+      <p>Event name: <input type='text' id='eventName'></input></p><br>
+
+      <u class='creating'>Contact Information</u>
+      <p class='creating'>Client's netid: <input type='text' id='clientNetidInput'></input></p>
+      <p class='creating'>Email Address: <input type='text' id='contactEmailInput'></p>
+      <p class='creating'>Phone Number: <input type='text' id='contactPhoneInput'></p>
+      <p class='creating halfSize'><input type='checkbox' id='clientIsOverseer'>Reservation is being made on behalf of someone else</input></p>
+      <p class='creating' id='overseerNetidInput' style="display:none">Person in charge: <input type='text' id='overseerNetidInputBox'></input></p>
+
+      <p class='editing'> Reserved by: <span id='clientNetid'></span><span id='proxyEvent' style="display:none"> for <span id='overseerNetid'></span></span></p>
+      <p class='editing'> Email: <span id='contactEmail'></span></p>
+      <p class='editing'> Phone: <span id='contactPhone'></span></p>
+
+      <button id='deleteEvent' class='redBtn editing'>Delete Event</button><br>
+      <button id='saveEvent' class='creating greenBtn'>Save</button><button id='editEvent' class='editing greenBtn'>Save</button><button id='cancel' class='redBtn'>Cancel</button>
+    </div>
+
+    <div id='editError' class='window' style='display:none; left:40%; top:40%;'>
+      <header>Can't Edit</header>
+      <p>Sorry, but this event is not editable.</p>
+      <p>Please contact your supervisor if you wish to make changes.</p>
+      <button id='closeErrorWindow' class='redBtn'>Close</button>
+    </div>
+
+    <div id='submitError' class='window' style='display:none; left:40%; top:40%;'>
+      <header>Invalid Entry</header>
+      <p>Please enter a<span id='invalidField'></span>.</p>
+      <button id='closeInvalidWindow' class='redBtn'>Close</button>
+    </div>
+
+  </section>
+
+</body>
+<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+<!--<script src="/js/jquery-2.1.4.min.js"></script>-->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js'></script>
+<!--<script src='/js/moment.js'></script>-->
+<script src="/js/cal.js"></script>
