@@ -1,210 +1,214 @@
-$cal-red: red;
-$cal-green: green;
-$cal-blue:  #1c305d;
-$bg: #f6f3ea;
-$highlight: #b3b1aa;
+#calendar {
 
-#calendar
+	-webkit-user-select: none;
+	overflow: hidden;
+
+	input[type="date"]::-webkit-inner-spin-button { 
+	    -webkit-appearance: none;
+	    display: none;
+	}
+
+	#headerBar
+	{
+		text-align: center;
+		color: white;
+	}
+
+	#visibleGrid
+	{
+		height: 100%;
+	}
+
+	table
+	{
+		table-layout: fixed;
+		width: 97%;
+		height: 97%;
+		td
+		{
+			color: $mainBlue;
+			-webket-user-select: none;
+			border-collapse: collapse;
+			border: 1px solid $mainBlue;
+			padding: 2px;
+			text-align: center;
+			font-size: 0.85em;
+		}
+		border-bottom: 1px solid $mainBlue;
+
+		.today
+		{
+			background: $mainBlueHL;
+		}
+	}
+
+	.blank, .time
+	{
+		width: 3em;
+	}
+
+	.blank, .room, .time, .day
+	{
+		padding:0.3em;
+		font-size: 14px;
+		background: $mainBlue;
+	}
+
+	.blank:hover, .time:hover, .day:not(.today):hover
+	{
+		background: $mainBlue;
+	}
+
+	tr:hover .time:first-child
+	{
+		transition: background 0.15s;
+		background: $mainBlueHL;
+	}
+
+	td:not(.booked):not(.disabled):hover, .room:hover
+	{
+		transition: background 0.15s;
+		background: $mainBlueHL;
+	}
+
+	.booked
+	{
+		background: $disabledGrey;
+		border-top: 0px solid $mainBlue;
+		border-bottom: 0px solid $mainBlue;
+	}
+
+	.top
+	{
+		border-top: 1px solid $mainBlue;
+	}
+
+	.bottom
+	{
+		border-bottom: 1px solid $mainBlue;		
+	}
+
+	.disabled
+	{
+		background-image: linear-gradient(rgba(202, 201, 201, 0.7), rgba(202, 201, 201, 0.7)); //hacky way to tint cells
+		color: $mainGrey;
+		border-color: $mainGrey;
+	}
+
+
+	.hover
+	{
+		background: $mainBlueHL;
+	}
+
+	.selected
+	{
+		background: $mainBlueHL;
+	}
+
+	div .roomInfo
+	{
+		padding: 0.5em;
+	    background-color: rgba(250, 250, 250, .8);
+	    width: 22%;
+	    border: 0;
+	    border-radius: .4em;
+	    box-shadow: .4em .4em 15px rgba(100, 100, 100, .8);
+	    position: absolute;
+	    visibility: visible;
+	    color: #555;
+	    padding: 0.5em;
+
+	    font-size: 0.75em;
+		text-align: center;
+	    u
+	    {
+	    	font-size: 1.25em;
+	    }
+	    table, tr, td
+	    {
+	    	margin: auto;
+	    	border: 0;
+			background-color: rgba(250, 250, 250, 0);
+			.left
+			{
+				width: 20%;
+				text-align: right;
+			}
+			.right
+			{
+				width: 80%;
+				text-align: left;
+			}
+	    }
+	}
+
+	.smallBtn
+	{
+		padding: 0.5em;
+	}
+
+	.window
+	{
+		-webkit-user-select: none;
+		padding: 0.5em;
+	    background-color: rgba(250, 250, 250, .8);
+	    width: 27%;
+	    border: 0;
+	    border-radius: 0.4em;
+	    box-shadow: .4em .4em 15px rgba(100, 100, 100, .8);
+	    position: absolute;
+	    visibility: visible;
+	    color: #555;
+	    padding: 2em 0.5em 0.5em 0.5em;
+	    z-index: 2;
+
+	    header
+	    {
+	    	cursor: move;
+		    color: #fff;
+		    top: 0em;
+		    background-color: $mainBlue;
+		    padding: .5em;
+		    text-align: center;
+		    border: 0; 
+		    border-radius: .4em .4em 0 0;
+		    position:inherit;
+		    width: calc(100% - 1em);
+		    margin: -.5em -.5em;
+	    }
+
+	    .halfSize
+	    {
+	    	font-size: 0.85em;
+	    	-webkit-transform: scale(0.8);
+	    }
+	}
+
+	.blurred
+	{
+		//-webkit-filter: blur(1.25px);
+		-webkit-filter: blur(2px);
+	}
+
+	#blanket
+	{
+		cursor: default;
+		height: 100%;
+		width: 100%;
+		position: absolute;
+		top:0px;
+		z-index: 1;
+		font-size: 4em;
+
+		display: flex;
+		align-items: center;
+		justify-content: center;	
+	}
+
+}
+
+.hidden
 {
-  position: relative;
-  text-align: center;
-  overflow:hidden;
-  width: 98%;
-  height: 93%;
-
-  #weekView, #dayView
-  {
-    position: relative;
-    text-align: inherit;
-    width: inherit;
-    height: inherit;
-    min-width: inherit;
-    min-height: inherit;
-  }
-
-  .hidden
-  {
-    display: none;
-  }
-
-  button {
-    padding: 0.8em;
-  }
-
-  #popup {
-    position: relative;
-    padding: 0.2em;
-    text-align: left;
-    width: 13em;
-    height: 13em;
-    padding: 0.3em;
-    background-color: rgba(255, 255, 255, 0.9);
-    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
-    select {
-      margin-bottom: 0.2em;
-    }
-    input {
-      margin-bottom: 0.2em;
-    }
-  }
-  #popup.under:before {
-    content:"";
-    position: absolute;
-    right: 5.55em;
-    top: -0.85em;
-    width: 0;
-    height: 0;
-    border-left: 0.9em solid transparent;
-    border-right: 0.9em solid transparent;
-    border-bottom: 0.9em solid rgba(255, 255, 255, 0.9);
-  }
-  #popup:not(.under):before {
-    content:"";
-    position: absolute;
-    right: 5.55em;
-    top: 100%;
-    width: 0;
-    height: 0;
-    border-left: 0.9em solid transparent;
-    border-right: 0.9em solid transparent;
-    border-top: 0.9em solid rgba(255, 255, 255, 0.9);
-  }
-
-  #popupButtons {
-    text-align: center;
-  }
-
-  #deleteButton {
-    padding-left: 0px;
-    padding-right: 0px;
-  }
-
-  #deleteButton, #saveButton {
-    margin: 0.5em;
-    margin-top: 0.2em;
-    width: 4em;
-  }
-
-  tr
-  {
-    background-color: $bg;
-  }
-
-  th:hover {
-      background: none;
-  }
-
-  th {
-      background: none;
-      color: black;
-      transition: none;
-  }
-
-  table.calendar
-  {
-    border-collapse: collapse;
-    background: $bg;
-    padding: 1em;
-    border: $bg;
-    margin:1em;
-
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    cursor: default;
-
-    background-color: $bg;
-    width: inherit;
-    height: inherit;
-    table-layout: fixed;
-  }
-
-  th.time, th.blank
-  {
-    width: 2.5em;
-  }
-
-  td
-  {
-    border: 1px solid black;
-    transition: background 0.3s;
-  }
-
-  table td:not(.selected):not(.disabled):not(.requested):not(.bookedByUser):hover
-  {
-    background-color: $highlight;
-    cursor: pointer;
-  }
-
-  table td.highlight
-  {
-    background-color: $highlight;
-    cursor: pointer;
-  }
-
-  table td.topBox
-  {
-    border-bottom-width: 0px;
-  }
-
-  table td.middleBox
-  {
-    border-top-width: 0px;
-    border-bottom-width: 0px;
-  }
-
-  table td.bottomBox
-  {
-    border-top-width: 0px;
-  }
-
-  .selected
-  {
-    background-color: $cal-blue;
-    cursor: pointer;
-  }
-
-  .disabled
-  {
-    background-color: $disabledGrey;
-    cursor: default;
-    border-width: 0px;
-  }
-
-  .requested
-  {
-    background-color: $cal-green;
-    cursor: default;
-  }
-
-  .bookedByUser
-  {
-    background-color: #0000FF;
-    cursor: default;
-  }
-
-  .pending
-  {
-    background-color: yellow;
-    cursor: default;
-  }
-
-  th
-  {
-    &.day, &.room
-    {
-      border-bottom-style: solid;
-      border-bottom-width: 1px;
-    }
-    &.time
-    {
-      border-right-style: solid;
-      border-right-width: 1px;
-    }
-    font-weight: bold;
-    vertical-align: middle;
-  }
+	display: none;
 }
