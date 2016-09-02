@@ -534,12 +534,12 @@ $(document).ready(function() {
 
   function getRoomEventsForWeek(room, monday) {
     mondayString = monday.format('YYYY-MM-DD');
-    socket.emit('get week events', {'user':window.user, 'room':room['id'], 'date':mondayString});
+    socket.emit('get week events', {'user':window.user, 'room':room['id'], 'date':mondayString, 'token':window.HLRDESK.token});
   }
 
   function getDayEventsForRooms(rooms, date) {
     var dateString = date.format('YYYY-MM-DD');
-    socket.emit('get day events', {'user':window.user, 'rooms':rooms, 'date':dateString});
+    socket.emit('get day events', {'user':window.user, 'rooms':rooms, 'date':dateString, 'token':window.HLRDESK.token});
   }
 
   socket.on('get day events', function(events) {
@@ -556,7 +556,7 @@ $(document).ready(function() {
     clearSelection();
     selectedCells.length = 0;
     cloak('Submitting...');
-    socket.emit('new event', {'event':event, 'view':currentView})
+    socket.emit('new event', {'event':event, 'view':currentView, 'token':window.HLRDESK.token})
   }
 
   socket.on('refresh events', function() {
@@ -581,7 +581,7 @@ $(document).ready(function() {
     cell.removeData('event');
     cell.removeAttr('data-event');
 
-    socket.emit('delete event', {'event':event});
+    socket.emit('delete event', {'event':event, 'token':window.HLRDESK.token});
   }
 
   function editEvent(event, eventId) {
@@ -593,7 +593,7 @@ $(document).ready(function() {
     cell.removeData('event');
     cell.removeAttr('data-event');
 
-    socket.emit('edit event', {'event':event, 'id':eventId});
+    socket.emit('edit event', {'event':event, 'id':eventId, 'token':window.HLRDESK.token});
   }
 
   function placeDayEvents(events) {

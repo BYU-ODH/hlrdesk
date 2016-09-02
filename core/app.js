@@ -54,7 +54,8 @@ if(ENV.NODE_TEST === 'true') {
 
 app.use(function*(next){
   const WHITELIST = ['/signin', '/logmein', '/logout', '/rss'];
-  const GREYLIST = WHITELIST.concat(['/calendar']);
+  //const GREYLIST = WHITELIST.concat(['/calendar']);
+  const GREYLIST = WHITELIST;
   if (!this.session.user && WHITELIST.indexOf(this.request.path) === -1){
     this.session.login_redirect = this.request.path + this.request.search;
     this.redirect('https://cas.byu.edu/cas/login?service=' + SERVICE);
@@ -62,7 +63,7 @@ app.use(function*(next){
   }
   var is_admin = yield auth.isAdmin(this.session.user)
   if ( this.session.user && !is_admin && GREYLIST.indexOf(this.request.path) === -1){
-    this.redirect('/calendar');
+    this.redirect('https://hlr.byu.edu/schedule/');
     return;
   }
   else{
@@ -225,7 +226,7 @@ app.use(_.get("/signin", function *(next){
     this.redirect('/');
   }
   else {
-    this.redirect('/calendar');
+    this.redirect('https://hlr.byu.edu/schedule/');
   }
   yield next;
 }));
