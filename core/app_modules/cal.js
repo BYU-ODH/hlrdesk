@@ -178,7 +178,7 @@ isOverlap = co.wrap(function*(event, id) {
 });
 
 isInAllowedRoom = co.wrap(function*(event) {
-  var allowedRooms = ['8', '9', '10', '11', '12', '13', '15', '26', '27', '28'];
+  var allowedRooms = ['1', '2', '3', '4', '5', '6', '8', '9', '10', '11', '12', '13', '15', '26', '27', '28'];
   if (allowedRooms.indexOf(event['room']) != -1) {
     return yield Promise.resolve(true);
   } else {
