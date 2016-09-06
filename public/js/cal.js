@@ -68,10 +68,10 @@ $(document).ready(function() {
   var currentlySelecting = false;
 
   $('#roomsSelector').on('change', function(){
-    if ($(this).val() == 'Study Rooms' && displayedDate < moment()) {
+    if (($(this).val() == 'Study Rooms' || $(this).val() == 'Classrooms') && displayedDate < moment()) {
       displayedDate = moment();
     }
-    var roomTemplateIds = {'Study Rooms':'studyRooms', 'Recording Studio':'recordingStudio', 'FLAC':'flac', 'Other Rooms':'otherRooms'}
+    var roomTemplateIds = {'Study Rooms':'studyRooms', 'Recording Studio':'recordingStudio', 'FLAC':'flac', 'Classrooms':'classrooms'}
     displayedRooms = roomTemplateIds[this.value];
     changeGridTo(roomTemplateIds[this.value], displayedDate);
   });
@@ -95,7 +95,7 @@ $(document).ready(function() {
   function changeGridTo(view, date) {
     $('td').off('mouseover');
     $('#visibleGrid').html($('#'+view).html());
-    if (view == 'studyRooms' || view == 'otherRooms') {
+    if (view == 'studyRooms' || view == 'classrooms') {
       currentView = 'multiple rooms';
       $('.roomInfo').hide();
       $('.room').mouseover(function(){
