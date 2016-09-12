@@ -196,13 +196,13 @@ $(document).ready(function() {
     for (var i = 0; i < allCells.length; i++) {
       var cell = $('#'+allCells[i].id.replace('.', '\\.'))
       if (currentView == 'multiple rooms') {
-        if (displayedDate.isSame(moment(), 'day') && (cell.data('time') <= (Number(moment().format('H')) + Number(moment().format('m')/60)))) {
+        if (displayedDate.isSame(moment(), 'day') && (cell.data('time') <= (Number(moment().format('H'))-0.5 + Number(moment().format('m')/60)))) {
           cell.addClass('disabled');
         }
       } else {
         var days = {'sunday':0, 'monday':1, 'tuesday':2, 'wednesday':3, 'thursday':4, 'friday':5, 'saturday':6};
         if (displayedDate.isSame(moment(), 'week')) { //if dispalying current week
-          if ((days[cell.data('day')] < moment().format('d')) || (days[cell.data('day')] == moment().format('d') && (Number(cell.data('time')) <= Number(moment().format('H'))+Number(moment().format('m')/60)))) { //if previous time
+          if ((days[cell.data('day')] < moment().format('d')) || (days[cell.data('day')] == moment().format('d') && (Number(cell.data('time')) <= Number(moment().format('H'))-0.5 + Number(moment().format('m')/60)))) { //if previous time
             cell.addClass('disabled');
           }
         }
