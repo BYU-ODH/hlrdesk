@@ -40,24 +40,26 @@ $(document).ready(function() {
       newDate.add(1, 'days');
     }
     if (currentView == 'multiple rooms') {
+      displayedDate = newDate;
       if (displayedDate.isSame(moment(), 'day')) {
         $('#previousBtn').addClass('disabledBtn');
       } else {
         $('#previousBtn').removeClass('disabledBtn');
       }
-      displayedDate = newDate;
+      $('#dayOfWeek').show();
     } else {
+      displayedDate = newDate;
       if (displayedDate.isSame(moment(), 'week')) {
         $('#previousBtn').addClass('disabledBtn');
       } else {
         $('#previousBtn').removeClass('disabledBtn');
       }
-      displayedDate = newDate;
       displayedDate.day(1);
     }
     $('#dateSelector').val(displayedDate.format('YYYY-MM-DD'));
     $('#roomsSelector').trigger('change', [currentView, displayedDate])
   }
+  $('#dayOfWeek').text(displayedDate.format('dddd'));
 
 ////////////////////////////////////////FRONTEND//////////////////////////////////////
 
@@ -98,6 +100,7 @@ $(document).ready(function() {
     if (view == 'studyRooms' || view == 'classrooms') {
       currentView = 'multiple rooms';
       $('.roomInfo').hide();
+      $('#dayOfWeek').text(displayedDate.format('dddd'));
       $('.room').mouseover(function(){
         var roomNum = $(this).text().substring(0, $(this).text().indexOf(" "));
         var roomInfoDiv = $('#'+roomNum);
@@ -116,6 +119,7 @@ $(document).ready(function() {
       cloak('Loading...');
       getDayEventsForRooms(window.rooms[view], displayedDate);
     } else if (view == 'recordingStudio' || view == 'flac') {
+      $('#dayOfWeek').text('Week of ');
       currentView = 'single room';
 
       displayedDate.day(1)
@@ -542,14 +546,34 @@ $(document).ready(function() {
     socket.emit('get day events', {'user':window.user, 'rooms':rooms, 'date':dateString, 'token':window.HLRDESK.token});
   }
 
-  socket.on('get day events', function(events) {
-    currentEvents = events;
-    placeDayEvents(events);
+  socket.on('get day events', function(events, rooms, date) {
+    if (displayedDate.isSame(moment(String(date)), 'day')) {
+      if (JSON.stringify(rooms) == JSON.stringify(window.rooms.studyRooms) && displayedRooms == 'studyRooms') { 
+        currentEvents = events;
+        placeDayEvents(events);
+      } else if (JSON.stringify(rooms) == JSON.stringify(window.rooms.classrooms) && displayedRooms == 'classrooms') {
+        currentEvents = events;
+        placeDayEvents(events);
+      }
+    }
   });
 
-  socket.on('get week events', function(events) {
-    currentEvents = events;
-    placeWeekEvents(events);
+  socket.on('get week events', function(events, room, date) {
+    if (displayedDate.isSame(moment(String(date)), 'day')) {
+      if (room == 13 && displayedRooms == 'recordingStudio') { //recording studio
+        currentEvents = events;
+        placeWeekEvents(events);
+      } else if (room == 15 && displayedRooms == 'flac') { //flac
+        currentEvents = events;
+        placeWeekEvents(events);
+      }
+    }
+  });
+
+  socket.on('event deleted', function(event) {
+    console.log('deleting event ' + event.id);
+    $('td[data-event='+event.id+']').removeClass();
+    $('td[data-event='+event.id+']').text('');
   });
 
   function submitEvent(event) {
