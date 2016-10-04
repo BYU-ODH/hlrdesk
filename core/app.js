@@ -63,8 +63,13 @@ app.use(function*(next){
   }
   var is_admin = yield auth.isAdmin(this.session.user)
   if ( this.session.user && !is_admin && GREYLIST.indexOf(this.request.path) === -1){
-    this.redirect('https://hlr.byu.edu/schedule/');
-    return;
+    /*this.redirect('https://hlr.byu.edu/schedule/');
+    return;*/
+
+    this.session = null; //automatically log out if not admin
+    var s = this.request.query.service || null;
+    var url = 'https://cas.byu.edu/cas/logout' + (s ? '?service=' + s : '');
+    this.redirect(url);
   }
   else{
     yield next;
@@ -224,9 +229,6 @@ app.use(_.get("/signin", function *(next){
   auth.login(this, obj);
   if (yield auth.isAdmin(this.session.user)){
     this.redirect('/');
-  }
-  else {
-    this.redirect('https://hlr.byu.edu/schedule/');
   }
   yield next;
 }));
