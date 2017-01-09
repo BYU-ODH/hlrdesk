@@ -62,9 +62,9 @@ window.HLRDESK.init.checkout = function initCheckout() {
     }
 
     var emitMe = {
-      netid: el.querySelector('input[name=netid]').value,
+      netid: el.querySelector('input[name=netid]').value.toLowerCase(),
       telephone: el.querySelector('input[name=tel]').value,
-      email: el.querySelector('input[name=email]').value,
+      email: el.querySelector('input[name=email]').value.toLowerCase(),
       items: toSubmit,
       token: window.HLRDESK.token
     };
