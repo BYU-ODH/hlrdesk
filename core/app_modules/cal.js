@@ -45,7 +45,7 @@ module.exports.getAllEvents = co.wrap(function*(date, rooms) {
   var allEvents = JSON.parse(response.body);
 
   var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  
+
   for (var i = 0; i < allEvents.length; i++) {
 
     var eventDays = allEvents[i].days_of_week.split(',')
@@ -72,7 +72,7 @@ module.exports.newEvent = co.wrap(function*(event) {
   var termCodes = {'1':'Winter', '3':'Spring', '4':'Summer', '5':'Fall'}
 
   event.term = termCodes[JSON.parse(dateInfo.body).ControldateswsService.response.date_list[0].year_term.charAt(4)];
-  
+
   var noteObj = JSON.parse(event.note);
   var userInfo = yield user.ldapInfo.apply(null, [event.request_id]);
   var userName = userInfo[event.request_id]['cn'];
@@ -108,7 +108,7 @@ module.exports.editEvent = co.wrap(function*(event, id) {
 
   var allowed = yield isAllowed(event, id);
   if (allowed) {
-    var response = yield request.put(url, {form:event}); 
+    var response = yield request.put(url, {form:event});
   }
   return;
 });
@@ -127,9 +127,11 @@ isAllowed = co.wrap(function*(event, id) {
   var overlap = yield isOverlap(event, id);
   var allowedRoom = yield isInAllowedRoom(event);
   var oneDay = yield isOneDay(event);
-  var JSONNote = yield noteIsJSON(event);
+  var notSunday = yield isNotSunday(event);
+  //var JSONNote = yield noteIsJSON(event);
 
-  if (!overlap && allowedRoom && oneDay && JSONNote) {
+  //if (!overlap && allowedRoom && oneDay && JSONNote) { //removed due to events being edited by different calendars that don't put the notes in a json formate
+  if (!overlap && allowedRoom && oneDay && notSunday) {
     return yield Promise.resolve(true);
   }
 })
@@ -145,7 +147,7 @@ isOverlap = co.wrap(function*(event, id) {
 
   var response = yield request('http://'+SCHEDHOST+'/rooms/events?token='+token+'&date='+eventDate+'&format=json');
   var allEvents = JSON.parse(response.body);
-  
+
   for (var i = 0; i < allEvents.length; i++) {
     if (allEvents[i].room == event.room && allEvents[i]['start_date'] == eventDate && id !== allEvents[i].id) {
 
@@ -190,6 +192,17 @@ isInAllowedRoom = co.wrap(function*(event) {
 isOneDay = co.wrap(function*(event) {
   if (event['end_date'] === event['start_date']) {
     console.error('event spans over invalid range');
+    return yield Promise.resolve(false);
+  } else {
+    return yield Promise.resolve(true);
+  }
+});
+
+isNotSunday = co.wrap(function*(event) {
+  var dateArray = event.start_date.split(',');
+  var date = new Date(dateArray[0], dateArray[1] - 1, dateArray[2]);
+  if (date.getDay() == 0) {
+    console.error('event takes place on a Sunday');
     return yield Promise.resolve(false);
   } else {
     return yield Promise.resolve(true);

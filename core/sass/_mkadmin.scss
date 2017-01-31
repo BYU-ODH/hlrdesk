@@ -1,8 +1,30 @@
-#admin_box{
-  background-color: $creme;
-  padding: 2em;
-}
+#admin_box {
 
-#admin_list{
-  color: $mainBlue;
+  background-color: $creme;
+    padding: 2em;
+
+  #admin_list{
+    color: $mainBlue;
+  }
+
+  tr.selected{
+    background-color: $mainBlueHL;
+    color:white;
+      &:hover {
+      background-color: $byuBlueHL;
+    }
+  }
+
+  // .editForm{
+  //   display: none;
+  // }
+  #phoneNumInput{
+    font-size: 100%;
+    width: 6em;
+  }
+
+  #emailInput{
+    font-size: 100%;
+    width: 15em;
+  }
 }

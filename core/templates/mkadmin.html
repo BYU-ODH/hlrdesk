@@ -7,30 +7,56 @@
     <input type="hidden" id="csrf" value="<%=csrf%>" name="csrf">
     <input type="hidden" value="add" name="action">
   </form>
-
+  <form method='POST' id="edit_form"></form>
   <ul id="admin_list">
     <table>
       <th>Name</th>
       <th>NetId</th>
       <th>Telephone</th>
       <th>Email</th>
-      <th>Remove</th>
+      <th></th>
+      <th></th>
       <% allAdminsFromDB.rows.forEach(function(admin, x) { %>
         <!--This is for toggling to see all users in the database, functionality for this coming soon... -->
         <% if ( admin.admin ) { %>
           <li>
-            <tr>
-            <td><%= namesFromDB[x] ? namesFromDB[x] : '-' %></td>
-            <td><%= admin.netid %></td>
-            <td><%= admin.telephone ? admin.telephone : '-' %></td>
-            <td> <a href="mailto:<%= admin.email %>?Subject=HLR" target="_top"><i title="<%= admin.email %>" class="fa fa-envelope-o" aria-hidden="true"></i></a> </td>
-            <td><form method=post>
-              <button type='submit' class=redBtn  ><i  class="fa fa-times" aria-hidden="true"></i></button>
-              <input type='hidden' name='user' value="<%=admin.netid%>">
-              <input type='hidden' value='remove' name='action'>
-              <input type='hidden' id = 'csrf' value='<%=csrf%>' name='csrf'>  </form>
-            </td>
-          </tr>
+            <tr id='<%=admin.netid%>'>
+              <td><%= namesFromDB[x] ? namesFromDB[x] : '-' %></td>
+              <td><%= admin.netid %></td>
+              <td><%= admin.telephone ? admin.telephone : '-' %></td>
+              <td><a href="mailto:<%= admin.email %>?Subject=HLR" target="_top"><i title="<%= admin.email %>" class="fa fa-envelope-o" aria-hidden="true"></i></a> <%=admin.email%></td>
+              <td><button class="greenBtn editButton">Edit</button></td>
+              <td><form method=post>
+                <button type='submit' class=redBtn>Remove</button>
+                <input type='hidden' name='user' value="<%=admin.netid%>">
+                <input type='hidden' name='action' value='remove'>
+                <input type='hidden' id = 'csrf' value='<%=csrf%>' name='csrf'>  </form>
+              </td>
+            </tr>
+            <template id='<%=admin.netid%>Original'>
+              <td><%= namesFromDB[x] ? namesFromDB[x] : '-' %></td>
+              <td><%= admin.netid %></td>
+              <td><%= admin.telephone ? admin.telephone : '-' %></td>
+              <td><a href="mailto:<%= admin.email %>?Subject=HLR" target="_top"><i title="<%= admin.email %>" class="fa fa-envelope-o" aria-hidden="true"></i></a> <%=admin.email%></td>
+              <td><button id='<%=admin.netid%>' class="greenBtn editButton">Edit</button></td>
+              <td><form method=post>
+                <button type='submit' class=redBtn>Remove</button>
+                <input type='hidden' name='user' value="<%=admin.netid%>">
+                <input type='hidden' name='action' value='remove'>
+                <input type='hidden' id = 'csrf' value='<%=csrf%>' name='csrf'>  </form>
+              </td>
+            </template>
+            <template id='<%=admin.netid%>Edit'>
+              <td><%= namesFromDB[x] ? namesFromDB[x] : '-' %></td>
+              <td><%= admin.netid %></td>
+              <td><input type='text' id='phoneNumInput' name="user_phone" value='<%= admin.telephone ? admin.telephone : '' %>' form="edit_form"></input></td>
+              <td><input type='text' id='emailInput' name="user_email" value='<%=admin.email%>' form="edit_form"></input></td>
+              <td><button type='submit' class='greenBtn saveBtn' form="edit_form">Save</button></td>
+              <input type='hidden' value='<%=admin.netid%>' name='netid' form="edit_form">
+              <input type='hidden' value="edit" name="action" form="edit_form">
+              <input type='hidden' id='csrf' value='<%=csrf%>' name='csrf' form="edit_form">
+              <td><button class='redBtn cancelBtn'>Cancel</button><td>
+            </template>
         </li>
       <% } %>
     <% }); %>
