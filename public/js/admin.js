@@ -41,7 +41,7 @@ var oneMinute = 1000 * 60;
     checkForUnread();
     // check if the timer is past
     if (localStorage.timer == undefined) {
-      localStorage.timer = Date.now() + oneMinute * 90; // hour and a half
+      localStorage.timer = Date.now() + oneMinute * 60; // hour
     }
   });
 
