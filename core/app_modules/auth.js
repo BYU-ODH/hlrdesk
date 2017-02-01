@@ -101,13 +101,24 @@ module.exports = {
   check_id: check_id,
 
   mkadmin: co.wrap(function*(user, employee, override) {
+    if (employee.user == '') {
+      return yield Promise.resolve(false);
+    }
     var client = db();
     var is_user = yield check_id(employee.user);
     var user_is_admin = yield isAdmin(user);
     var add_user = is_user || override
     if (add_user && user_is_admin){
       if (is_user){
-        yield client.nonQuery("UPDATE users SET admin='TRUE' WHERE netid = $1;", [employee.user]);
+        if (!employee.user.user_phone && !employee.user.user_email) {
+          yield client.nonQuery("UPDATE users SET admin='TRUE' WHERE netid = $1;", [employee.user]);
+        } else if (!employee.user.user_phone && employee.user.user_email) {
+          yield client.nonQuery("UPDATE users SET admin='TRUE', email=$2 WHERE netid = $1;", [employee.user, employee.user_email]);
+        } else if (employee.user.user_phone && !employee.user.user_email) {
+          yield client.nonQuery("UPDATE users SET admin='TRUE', telephone=$2 WHERE netid = $1;", [employee.user, employee.user_phone]);
+        } else {
+          yield client.nonQuery("UPDATE users SET admin='TRUE', telephone=$2, email=$3 WHERE netid = $1;", [employee.user, employee.user_phone, employee.user_email]);
+        }
       }
       else{
         yield client.nonQuery("INSERT INTO users (netid, telephone, email) values ($1, $2, $3);",[employee.user, employee.user_phone, employee.user_email]);
@@ -130,6 +141,19 @@ module.exports = {
       return yield Promise.resolve(true);
     }
     else {
+      return yield Promise.resolve(false);
+    }
+  }),
+
+  editadmin: co.wrap(function*(user, netid, phone, email, override) {
+    var client = db();
+    var is_user = yield check_id(netid);
+    var is_admin = yield isAdmin(netid);
+    var user_is_admin = yield isAdmin(user);
+    if (is_user && is_admin && user_is_admin) {
+      client.query("UPDATE users SET email=$2, telephone=$3 WHERE netid = $1;", [netid, email, phone]);
+      return yield Promise.resolve(true);
+    } else {
       return yield Promise.resolve(false);
     }
   })

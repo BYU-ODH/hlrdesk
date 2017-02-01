@@ -309,6 +309,25 @@ app.use(_.post("/employees",function *(){
       }
       return
     }
+  } else if (body.action == "edit") {
+    try {
+      phone = body.user_phone;
+      email = body.user_email;
+      netid = body.netid;
+      status = yield auth.editadmin(this.session.user, netid, phone, email, true);
+      if(!status){
+        this.redirect('/employees');
+      }
+      else{
+        this.redirect('/employees');
+      }
+    } catch (err) {
+      this.status = 403
+      this.body = {
+        message: 'This CSRF token is invalid!'
+      }
+      return
+    }
   } else if (body.action == "remove") {
     try {
       to_del=body.user;
