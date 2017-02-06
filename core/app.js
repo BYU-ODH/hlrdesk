@@ -407,6 +407,16 @@ app.use(_.get("/newsbox",function *(){
   });
 }));
 
+app.use(_.get("/helpdesk", function *() {
+  yield this.render('helpdesk', {
+    layout: this.USE_LAYOUT,
+    csrf: this.csrf,
+    helpdeskAction: ENV.HELPDESK_URL,
+    helpdeskUsername: ENV.HELPDESK_USER,
+    helpdeskPassword: ENV.HELPDESK_PASSWORD
+  });
+}));
+
 socket.start(app);
 
 socket.use(function*(next){

@@ -1,0 +1,14 @@
+<section id='helpdeskFrame'>
+
+  <form id="loginForm" name="login" target="frame" method="post" action="<%=helpdeskAction%>">
+      <input type="hidden" name="username" value="<%=helpdeskUsername%>" />
+      <input type="hidden" name="password" value="<%=helpdeskPassword%>" />
+      <input id='submit' type='submit' name='op' value='Login' style='display: none'/>
+  </form>
+
+  <iframe id="frame" name="frame" style="width: 100%; height: 100%"></iframe>
+
+  <script type="text/javascript">
+    document.getElementById("submit").click();
+  </script>
+</section>
