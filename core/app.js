@@ -183,7 +183,6 @@ app.use(_.get('/edit-catalog', function *() {
 }));
 
 app.use(_.get('/inventory.csv', function *() {
-  var that = this;
   var json2csv = require('json2csv');
   var client = db();
   var all_items = yield client.query("SELECT * FROM inventory;");
@@ -192,10 +191,11 @@ app.use(_.get('/inventory.csv', function *() {
     'Content-Type': 'text/csv',
     'Content-Disposition': 'attachment; filename=inventory.csv'
   });
-  json2csv({ data: all_items.rows, fields: fields }, function(err, csv) {
-    if (err) throw err;
-    that.body = csv;
-  });
+  try {
+    this.body = json2csv({ data: all_items.rows, fields: fields });
+  } catch (err) {
+    throw err;
+  }
 }));
 
 app.use(_.get('/viewHistory', function *() {
