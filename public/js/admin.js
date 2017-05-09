@@ -40,7 +40,7 @@ var oneMinute = 1000 * 60;
   $('document').ready(function () {
     checkForUnread();
     // check if the timer is past
-    if (localStorage.timer == undefined) {
+    if (!localStorage.timer) {
       localStorage.timer = Date.now() + oneMinute * 60; // hour
     }
   });
@@ -64,12 +64,21 @@ var oneMinute = 1000 * 60;
 
 window.HLRDESK.init.messages();//not sure this is the best way to load messages sockets
 
+window.onunload = function() {
+  localStorage.removeItem("timer");
+}
+
+$('#logout').click(function(){
+  localStorage.removeItem("timer");
+});
+
 function showMessage() {
   $("#messageDisplay").show().one();
 }
 
 function checkTimeout() {
-  if (localStorage.timer == undefined || localStorage.timer < Date.now()) {
+  if (!localStorage.timer || localStorage.timer < Date.now()) {
+    alert('Your session has expired. Please log in again.');
     localStorage.removeItem("timer");
     window.location.href = '/logout';
   }
