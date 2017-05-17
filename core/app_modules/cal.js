@@ -79,14 +79,27 @@ module.exports.newEvent = co.wrap(function*(event) {
   if (userName) {
     noteObj['name'] = userName;
   }
+  var lastName = userInfo[event.request_id]['sn'];
+  var firstName = userInfo[event.request_id]['cn'].split(' ')[0];
+  event.reqLName = lastName;
+  event.reqFName = firstName;
+  event.respPersLName = lastName;
+  event.respPersFName = firstName;
+  if (!event.email) {
+    event.email = userInfo[event.request_id]['mail'];
+  }
   if (event.responsible_id != event.request_id) {
     var overseerInfo = yield user.ldapInfo.apply(null, [event.responsible_id]);
     if (overseerInfo) {
       var overseerName = overseerInfo[event.responsible_id]['cn'];
+      var overseerLastName = overseerInfo[event.responsible_id]['sn'];
+      var overseerFirstName = overseerInfo[event.responsible_id]['cn'].split(' ')[0];
+      event.respPersLName = overseerLastName;
+      event.respPersFName = overseerFirstName;
+      event.respPersEmail = overseerInfo[event.responsible_id]['mail'];
       noteObj['overseerName'] = overseerName;
     }
   }
-
   event.note = JSON.stringify(noteObj);
   url = String('http://'+SCHEDHOST+"/event?token="+token+"&format=JSON");
 

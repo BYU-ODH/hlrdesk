@@ -4,7 +4,7 @@ var displayedDate = moment();
 $(document).ready(function() {
 
 ////////////////////////////////////////EVENT LISTENERS///////////////////////////////
-  
+
   $('#previousBtn').click(function() {
     if (!$(this).hasClass('disabledBtn')) {
       var newDate = displayedDate;
@@ -412,7 +412,7 @@ $(document).ready(function() {
         $('#eventWindow').addClass('blurred');
         $('#eventWindow').css('z-index', 0)
         $('#closeInvalidWindow').click(function() {
-          $('#submitError').hide();          
+          $('#submitError').hide();
           $('#eventWindow').removeClass('blurred');
           $('#eventWindow').css('z-index', 1)
         });
@@ -428,7 +428,9 @@ $(document).ready(function() {
       } else {
         var noteObj = {'email':$('#contactEmailInput').val(), 'phone':$('#contactPhoneInput').val()};
         var note = JSON.stringify(noteObj);
-        var event = {'room':room['id'], 'start_date':start_date, 'start_time':start_time, 'end_time':end_time, 'request_id':request_id, 'responsible_id':responsible_id, 'desc':desc, 'note':note};
+        var email = $('#contactEmailInput').val();
+        var phone = $('#contactPhoneInput').val();
+        var event = {'room':room['id'], 'start_date':start_date, 'start_time':start_time, 'end_time':end_time, 'request_id':request_id, 'responsible_id':responsible_id, 'desc':desc, 'note':note, 'email':email, 'phone':phone};
         submitEvent(event);
       }
     });
@@ -548,7 +550,7 @@ $(document).ready(function() {
 
   socket.on('get day events', function(events, rooms, date) {
     if (displayedDate.isSame(moment(String(date)), 'day')) {
-      if (JSON.stringify(rooms) == JSON.stringify(window.rooms.studyRooms) && displayedRooms == 'studyRooms') { 
+      if (JSON.stringify(rooms) == JSON.stringify(window.rooms.studyRooms) && displayedRooms == 'studyRooms') {
         currentEvents = events;
         placeDayEvents(events);
       } else if (JSON.stringify(rooms) == JSON.stringify(window.rooms.classrooms) && displayedRooms == 'classrooms') {
@@ -628,7 +630,7 @@ $(document).ready(function() {
       }
       eventStart = Number(event['start_time'].substring(event['start_time'][0]==='0' ? 1:0,2) + ((event['start_time'][3]=='3')?'.5':''));
       eventEnd = Number(event['end_time'].substring(0,2) + ((event['end_time'][3]=='3')?'.5':''));
-      
+
       if (event.room == 0 || event.room == -2) {
         var cell = $('[data-time="'+String(eventStart).replace('.','\\.')+'"]');
       } else {
@@ -666,7 +668,7 @@ $(document).ready(function() {
       eventStart = Number(event['start_time'].substring(event['start_time'][0]==='0' ? 1:0,2) + ((event['start_time'][3]=='3')?'.5':''));
       eventEnd = Number(event['end_time'].substring(0,2) + ((event['end_time'][3]=='3')?'.5':''));
       eventDays =  event.days_of_week.split(',');
-      
+
       for (var j = 0; j < eventDays.length; j++) {
         var cell = $(('#'+eventDays[j].toLowerCase() +'-'+ eventStart).replace('.','\\.'));
         cell.text(event.name);
@@ -680,7 +682,7 @@ $(document).ready(function() {
           }
         }
       }
-    
+
     }
     $('td.booked:not(.disabled)').mouseover(function() {
       highlightEvent($(this));
@@ -699,7 +701,7 @@ $(document).ready(function() {
 Array.prototype.itemAt = Array.prototype.itemAt || function(index) {
   if (index < 0) {
     if (this[this.length+index]) {
-      return this[this.length+index];        
+      return this[this.length+index];
     } else {
       return this[this.length-1]
     }
