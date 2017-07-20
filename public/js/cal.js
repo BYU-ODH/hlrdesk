@@ -571,7 +571,6 @@ $(document).ready(function() {
   });
 
   socket.on('event deleted', function(event) {
-    console.log('deleting event ' + event.id);
     $('td[data-event='+event.id+']').removeClass();
     $('td[data-event='+event.id+']').text('');
   });
