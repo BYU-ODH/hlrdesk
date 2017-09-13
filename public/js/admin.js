@@ -38,11 +38,12 @@ var oneMinute = 1000 * 60;
   history.pushState({ href: href, title: title }, title, href);
 
   $('document').ready(function () {
-    checkForUnread();
-    // check if the timer is past
-    if (!localStorage.timer) {
-      localStorage.timer = Date.now() + oneMinute * 60; // hour
+    if (!sessionStorage.timer) {
+      sessionStorage.timer = Date.now() + oneMinute * 60; // hour
+    } else if (sessionStorage.timer < Date.now()) {
+      checkTimeout();
     }
+    setTimeout(checkForUnread, 1000);
   });
 
   var socket = window.io();
@@ -65,11 +66,11 @@ var oneMinute = 1000 * 60;
 window.HLRDESK.init.messages();//not sure this is the best way to load messages sockets
 
 window.onunload = function() {
-  localStorage.removeItem("timer");
+  sessionStorage.removeItem("timer");
 }
 
 $('#logout').click(function(){
-  localStorage.removeItem("timer");
+  sessionStorage.removeItem("timer");
 });
 
 function showMessage() {
@@ -77,9 +78,9 @@ function showMessage() {
 }
 
 function checkTimeout() {
-  if (!localStorage.timer || localStorage.timer < Date.now()) {
+  if (!sessionStorage.timer || sessionStorage.timer < Date.now()) {
     alert('Your session has expired. Please log in again.');
-    localStorage.removeItem("timer");
+    sessionStorage.removeItem("timer");
     window.location.href = '/logout';
   }
   setTimeout(checkTimeout, oneMinute / 2); // Check every 30 seconds for logout
