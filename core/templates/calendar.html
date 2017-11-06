@@ -13,7 +13,7 @@
       <% } else if (rooms[i]['name'] == "Foreign Lang Activity Commons" || rooms[i]['name'] == "Recording Studio") { %>
         <% specialtyRooms.push(rooms[i]); %>
         window.rooms.specialtyRooms['<%- rooms[i].name %>'] = <%- JSON.stringify(rooms[i]) %>;
-      <% } else if ((Number(rooms[i]['id']) >= 1 && Number(rooms[i]['id']) <= 6) || (Number(rooms[i]['id']) >= 29 && Number(rooms[i]['id']) <= 31)) { %>
+      <% } else if ((Number(rooms[i]['id']) >= 1 && Number(rooms[i]['id']) <= 6) || (Number(rooms[i]['id']) == 32 || Number(rooms[i]['id']) == 33)) { %>
         <% classrooms.push(rooms[i]); %>
         window.rooms.classrooms['<%- rooms[i].name %>'] = <%- JSON.stringify(rooms[i]) %>;
       <% } else { %>
